@@ -1,5 +1,5 @@
 /* FORM. Offline-Unterstützung v6 */
-const CACHE='form-pwa-v6-20261028';
+const CACHE='form-pwa-v7-20261028';
 const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()));

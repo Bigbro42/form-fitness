@@ -26,7 +26,7 @@ check('external JavaScript and CSS references exist',()=>{
 });
 check('PWA manifest and icons valid',()=>{
  assert.ok(manifest.name&&manifest.short_name&&manifest.start_url);
- for(const ico of manifest.icons||[])assert.ok(exists(ico.src.replace(/^\.\//,'')),'Missing icon: '+ico.src);
+ for(const ico of manifest.icons||[])assert.ok(exists(ico.src.split('?')[0].replace(/^\.\//,'')),'Missing icon: '+ico.src);
 });
 check('service worker version and syntax',()=>{
  new vm.Script(sw,{filename:'service-worker.js'});

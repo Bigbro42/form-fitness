@@ -1,0 +1,11 @@
+{
+  "name": "FORM. HYROX Trainer",
+  "short_name": "HYROX Coach",
+  "description": "Mixed Doubles, Physio und Workout Tracking",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f3",
+  "theme_color": "#10382f",
+  "lang": "de"
+}

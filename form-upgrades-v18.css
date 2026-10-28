@@ -1,0 +1,6 @@
+/* Add-on styles are intentionally scoped to new components. */
+.rest-panel{margin:14px 0;padding:15px;border-radius:15px;background:#17241c;border:1px solid #31523b;color:#e9fff0}
+.rest-top{display:flex;justify-content:space-between;align-items:center;gap:10px}.rest-top>div>strong{display:block}.rest-top small{display:block;color:#b1c5b5;font-size:11px;margin-top:4px}.rest-time{font-size:25px;color:#6af3a1;font-variant-numeric:tabular-nums}
+.rest-choices{display:flex;gap:6px;margin-top:13px}.rest-choices button{flex:1;background:#26382d;border:1px solid #415648;color:#e2f4e7;border-radius:10px;padding:11px 5px;font-size:12px;font-weight:700}.rest-choices button.selected{background:#52e993;color:#08180e}.rest-auto{display:flex;align-items:center;gap:9px;color:#bcdbc5;font-size:12px;margin-top:12px}
+.copy-last{width:100%;display:block;padding:13px 10px;margin:11px 0;background:#213d29;color:#daffe1;border:1px solid #418a57;border-radius:12px;font-weight:800}.copy-info{color:#bde7c8;font-size:12px;padding:0 4px}
+.finish-recap{padding:17px;border:1px solid #58c586;background:#183624;border-radius:16px;margin:18px 0}.finish-recap strong{font-size:17px;color:#f4fff7}.finish-recap p{margin:8px 0;color:#d7f4e0}.finish-recap small{color:#9fbaaa;display:block;font-size:12px}

@@ -12,7 +12,16 @@ npm run typecheck
 npm test             # Unit-Tests (Vitest, IndexedDB via fake-indexeddb)
 npm run build        # dist/ inkl. Service Worker und Übungsfotos
 npm run test:e2e     # Playwright gegen dist/ + bisherige App auf demselben Origin
+npm run release      # Build nach /next kopieren (wird von GitHub Pages veröffentlicht)
 ```
+
+## Veröffentlichung
+
+GitHub Pages veröffentlicht den Root von `main`. Die gebaute App liegt eingecheckt in `/next`
+und ist damit unter `https://bigbro42.github.io/form-fitness/next/` erreichbar; die bisherige
+App unter `/form-fitness/` bleibt unverändert. Nach jeder Änderung `npm run release` ausführen
+und `next/` mit committen – die CI (`scripts/check-next.mjs`) schlägt sonst fehl.
+`E2E_PUBLISHED=1 npm run test:e2e` testet genau die veröffentlichte Ordnerstruktur.
 
 ## Aufbau
 

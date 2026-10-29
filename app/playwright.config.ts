@@ -26,7 +26,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `node scripts/static-server.mjs`,
-    env: { PORT: String(PORT) },
+    env: { PORT: String(PORT), ...(process.env.E2E_PUBLISHED ? { E2E_PUBLISHED: '1' } : {}) },
     url: `http://127.0.0.1:${PORT}/form-fitness/next/`,
     reuseExistingServer: false,
   },

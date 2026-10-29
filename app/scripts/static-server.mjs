@@ -30,6 +30,8 @@ export function serve(mounts, port = 0) {
 if (process.argv[1] === new URL(import.meta.url).pathname) {
   const port = Number(process.env.PORT ?? 4173);
   const root = path.resolve(import.meta.dirname, '../..');
-  serve({ '/form-fitness/next/': path.join(root, 'app/dist'), '/form-fitness/': root }, port)
+  // E2E_PUBLISHED=1 serves the repository exactly as GitHub Pages does (new app from /next).
+  const mounts = process.env.E2E_PUBLISHED ? { '/form-fitness/': root } : { '/form-fitness/next/': path.join(root, 'app/dist'), '/form-fitness/': root };
+  serve(mounts, port)
     .then(() => console.log(`Serving on http://127.0.0.1:${port}/form-fitness/`));
 }

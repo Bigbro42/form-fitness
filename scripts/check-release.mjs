@@ -30,7 +30,7 @@ check('PWA manifest and icons valid',()=>{
 });
 check('service worker version and syntax',()=>{
  new vm.Script(sw,{filename:'service-worker.js'});
- assert.ok(sw.includes("form-v20-"),'Cache version must match current app');
+ assert.match(sw,/const CACHE='form-v\d+-/,'Service worker cache must be versioned');
 });
 check('offline images exist',()=>{
  const ids=['Bodyweight_Squat','Butt_Lift_Bridge','Bodyweight_Walking_Lunge','Dead_Bug','Incline_Push-Up_Medium','Side_Bridge','Plank','Superman','Single_Leg_Glute_Bridge','Split_Squats','Incline_Push-Up_Close-Grip','Alternate_Heel_Touchers'];

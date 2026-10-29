@@ -87,6 +87,8 @@ test('works offline after the first visit', async ({ page, context }) => {
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  // Photos are cached in the background after the first start.
+  await expect.poll(() => page.evaluate(async () => Boolean(await (await caches.open('form-next-media')).match('media/exercises/Plank/0.jpg')))).toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();

@@ -5,6 +5,7 @@ import { today } from '../../domain/dates';
 import { getDb, refresh, requestPersist, useAppState } from '../../state/store';
 import { Notice, Sheet } from '../components';
 import { Icon } from '../icons';
+import { href } from '../router';
 
 function download(name: string, type: string, content: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -75,7 +76,8 @@ export function Data() {
 
   return (
     <main class="screen">
-      <header class="page-head">
+      <a class="btn btn-ghost" href={href({ name: 'home' })} style={{ marginLeft: 'calc(-1 * var(--space-2))' }}><Icon name="back" size={18} />Start</a>
+      <header class="page-head" style={{ marginTop: 'var(--space-3)' }}>
         <div>
           <p class="eyebrow">Daten</p>
           <h1 class="title">Sichern & Wiederherstellen</h1>

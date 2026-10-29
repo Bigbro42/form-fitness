@@ -29,6 +29,7 @@ export function Home() {
           <p class="eyebrow">{formatDate(today(), { weekday: 'long', day: 'numeric', month: 'long' })}</p>
           <h1 class="title brand">FORM<i>.</i></h1>
         </div>
+        <a class="icon-btn" href={href({ name: 'data' })} aria-label="Daten & Backup"><Icon name="data" size={20} /></a>
       </header>
 
       <div class="stack">

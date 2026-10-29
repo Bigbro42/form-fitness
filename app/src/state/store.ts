@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getKv, listSnapshots, openFormDb, readUserData, type Db, type LegacyImportState, type Snapshot } from '../db/db';
-import { DEFAULT_SETTINGS, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
+import { DEFAULT_SETTINGS, type ExerciseDef, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
 import { runLegacyMigration, type MigrationResult } from '../legacy/migrate';
 
 export type PersistState = 'persisted' | 'not-persisted' | 'unsupported';
@@ -169,6 +169,17 @@ export function saveTemplate(t: WorkoutTemplate): Promise<void> {
 export function deleteTemplate(id: string): Promise<void> {
   set({ data: { ...state.data, templates: state.data.templates.filter((x) => x.id !== id) } });
   return enqueue(() => getDb().delete('templates', id));
+}
+
+export function saveCustomExercise(x: ExerciseDef): Promise<void> {
+  const list = [...state.data.customExercises.filter((e) => e.id !== x.id), x].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  set({ data: { ...state.data, customExercises: list } });
+  return enqueue(() => getDb().put('exercises', x));
+}
+
+export function deleteCustomExercise(id: string): Promise<void> {
+  set({ data: { ...state.data, customExercises: state.data.customExercises.filter((e) => e.id !== id) } });
+  return enqueue(() => getDb().delete('exercises', id));
 }
 
 export function saveSettings(patch: Partial<Settings>): Promise<void> {

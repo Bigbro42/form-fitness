@@ -1,5 +1,7 @@
 import { useRef, useState } from 'preact/hooks';
-import { EQUIPMENT_LABELS, METRIC_LABELS, MUSCLE_LABELS } from '../../domain/catalog';
+import { EQUIPMENT_LABELS, METRIC_LABELS, muscleText } from '../../domain/catalog';
+import { REGIONS } from '../../domain/muscles';
+import { BodyMap } from '../BodyMap';
 import { formatDate } from '../../domain/dates';
 import { GOALS } from '../../domain/goals';
 import { exerciseHistory, fmtNum, personalBests, setsSummary } from '../../domain/history';
@@ -13,7 +15,7 @@ import {
 import { Sheet } from '../components';
 import { Icon } from '../icons';
 import { href, navigate } from '../router';
-import { ExercisePicker, NumberField } from '../workout-parts';
+import { ExercisePicker, NumberField, Technique } from '../workout-parts';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -35,15 +37,14 @@ function Media({ def }: { def: ExerciseDef | undefined }) {
     );
   }
   // No verified photo: show the muscles, clearly labelled, never a different exercise.
-  const primary = def?.primaryMuscles ?? [];
-  const secondary = def?.secondaryMuscles ?? [];
   return (
     <section class="muscle-card" aria-label="Muskelübersicht">
-      <div>
-        <p class="eyebrow">Muskelübersicht · keine Bewegungsdemonstration</p>
-        <div class="facts" style={{ marginTop: 'var(--space-2)' }}>
-          {primary.map((m) => <span key={m} class="chip chip-done">{MUSCLE_LABELS[m]}</span>)}
-          {secondary.map((m) => <span key={m} class="chip chip-neutral">{MUSCLE_LABELS[m]}</span>)}
+      <p class="eyebrow" style={{ marginBottom: 'var(--space-2)' }}>Muskelübersicht · keine Bewegungsdemonstration</p>
+      <div class="muscle-card-body">
+        <BodyMap label={`Muskeln bei ${def?.name ?? 'dieser Übung'}`} primary={def?.primaryMuscles ?? []} secondary={def?.secondaryMuscles ?? []} />
+        <div class="facts" style={{ marginTop: 0, alignContent: 'start' }}>
+          {(def?.primaryMuscles ?? []).map((m) => <span key={m} class="chip chip-done">{REGIONS[m].label}</span>)}
+          {(def?.secondaryMuscles ?? []).map((m) => <span key={m} class="chip chip-neutral">{REGIONS[m].label}</span>)}
         </div>
       </div>
       {Object.keys(broken).length > 0 && <p class="muted small" style={{ margin: 'var(--space-2) 0 0' }}>Das Foto konnte nicht geladen werden.</p>}
@@ -51,7 +52,6 @@ function Media({ def }: { def: ExerciseDef | undefined }) {
   );
 }
 
-/** Load guidance without invented kilograms: only relative to the person's own history. */
 function loadHint(def: ExerciseDef | undefined, lastSets: readonly SetEntry[] | undefined): string {
   if (def?.metric !== 'reps') return '';
   if (def.equipment.every((e) => e === 'body')) return 'Steigern über Wiederholungen, Tempo oder die schwerere Variante.';
@@ -135,7 +135,7 @@ export function ExerciseScreen({ id }: { id: string }) {
       <header style={{ marginBottom: 'var(--space-3)' }}>
         <h1 class="title title-m">{ex.name}</h1>
         <p class="muted small" style={{ margin: 'var(--space-1) 0 0' }}>
-          {def ? [...def.primaryMuscles, ...def.secondaryMuscles].map((m) => MUSCLE_LABELS[m]).join(' · ') : 'Eigene / unbekannte Übung'}
+          {def ? muscleText(def) : 'Eigene / unbekannte Übung'}
           {def && ` · ${def.equipment.map((e) => EQUIPMENT_LABELS[e]).join(', ')}`}
           {session.goal && ` · Ziel: ${GOALS[session.goal].short}`}
         </p>
@@ -145,7 +145,7 @@ export function ExerciseScreen({ id }: { id: string }) {
       <section class="rec" aria-label="Richtwert">
         <div class="rec-main">
           <div><b class="tabular">{range(rec.sets)}</b><span>Sätze</span></div>
-          <div><b class="tabular">{range(rec.target)}</b><span>{unit.long}</span></div>
+          <div><b class="tabular">{range(rec.target)}</b><span>{unit.short}</span></div>
           <div><b class="tabular">{rec.restSeconds[1] ? restLabel(rec.restSeconds).replace(' Pause', '').replace(' Sek.', ' s') : '–'}</b><span>Pause</span></div>
         </div>
         <p class="rec-note"><b>Richtwert:</b> {rec.effort}. {loadHint(def, last?.sets)}</p>
@@ -198,16 +198,7 @@ export function ExerciseScreen({ id }: { id: string }) {
       {/* 8. Technique, variants and exercise actions */}
       <details class="card details">
         <summary>Technik & Varianten</summary>
-        {def ? (
-          <div class="stack" style={{ marginTop: 'var(--space-3)' }}>
-            <p style={{ margin: 0 }}>{def.cue}</p>
-            <dl class="kv kv-text">
-              <dt>Leichter</dt><dd>{def.easier}</dd>
-              <dt>Schwerer</dt><dd>{def.harder}</dd>
-            </dl>
-            <p class="muted small" style={{ margin: 0 }}>Bei Schmerzen abbrechen. Die Beschreibung ersetzt keine persönliche Anleitung.</p>
-          </div>
-        ) : <p class="muted small">Für diese Übung ist keine Anleitung hinterlegt.</p>}
+        {def ? <Technique def={def} /> : <p class="muted small">Für diese Übung ist keine Anleitung hinterlegt.</p>}
         <label class="goal-line" style={{ marginTop: 'var(--space-3)' }}>
           <span class="muted small">Ausgeführte Variante</span>
           <select class="select" value={ex.variant} onChange={(e) => setWorkoutVariant(ex.id, (e.currentTarget as HTMLSelectElement).value as SessionExercise['variant'])}>

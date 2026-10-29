@@ -9,6 +9,9 @@
  *   library or to plans never rewrite history.
  */
 
+import type { MuscleRegion } from './muscles';
+import type { Pattern } from '../data/exercise-content';
+
 /** Calendar day in local time, "YYYY-MM-DD". */
 export type IsoDate = string;
 /** Timestamp, ISO 8601 with time zone. */
@@ -46,9 +49,10 @@ export interface ExerciseDef {
   /** Stable id. Built-in ids are the legacy app's ids and must never change. */
   id: string;
   name: string;
+  nameEn: string;
   aliases: string[];
-  primaryMuscles: MuscleGroup[];
-  secondaryMuscles: MuscleGroup[];
+  primaryMuscles: MuscleRegion[];
+  secondaryMuscles: MuscleRegion[];
   equipment: EquipmentId[];
   kind: ExerciseKind;
   metric: Metric;
@@ -57,7 +61,16 @@ export interface ExerciseDef {
   cue: string;
   easier: string;
   harder: string;
+  pattern: Pattern;
+  level: 1 | 2 | 3;
+  /** Goals the exercise fits well (derived from movement pattern). */
+  goals: GoalId[];
+  steps: string[];
+  mistakes: string[];
+  breathing: string;
   media: ExerciseMedia | null;
+  /** Duplicate kept only for history; hidden in the library. */
+  sameAs?: string;
   source: 'builtin' | 'custom';
   createdAt?: IsoDateTime;
 }

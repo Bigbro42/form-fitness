@@ -133,3 +133,11 @@ export function repeatSession(source: WorkoutSession): boolean {
   navigate({ name: 'workout' });
   return true;
 }
+
+/** "Mit dieser Übung trainieren": adds to the running workout or starts a new one with it. */
+export function trainExercise(def: ExerciseDef): void {
+  const state = getState();
+  if (!activeSession(state)) void saveSession(S.createSession({ date: today(), goal: state.data.settings.primaryGoal }));
+  const id = addToWorkout(def);
+  if (id) navigate({ name: 'exercise', id });
+}

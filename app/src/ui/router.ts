@@ -9,6 +9,9 @@ export type Route =
   | { name: 'calendar'; month?: string }
   /** New plan (optionally on a date), edit a series, or change a single occurrence. */
   | { name: 'plan'; planId?: string; original?: string; date?: string }
+  | { name: 'library' }
+  | { name: 'exerciseInfo'; id: string }
+  | { name: 'customExercise'; id?: string }
   | { name: 'history' }
   | { name: 'session'; id: string }
   | { name: 'data' };
@@ -20,6 +23,10 @@ export function parseRoute(hash: string): Route {
   const [a, b, c] = parts;
   if (a === 'kalender') return { name: 'calendar', ...(b && /^\d{4}-\d{2}$/.test(b) ? { month: b } : {}) };
   if (a === 'planen') return { name: 'plan', ...(b ? { planId: b } : {}), ...(c ? { original: c } : {}), ...(params.get('datum') ? { date: params.get('datum')! } : {}) };
+  if (a === 'uebungen' && b === 'neu') return { name: 'customExercise' };
+  if (a === 'uebungen' && b === 'bearbeiten' && c) return { name: 'customExercise', id: c };
+  if (a === 'uebungen' && b) return { name: 'exerciseInfo', id: b };
+  if (a === 'uebungen') return { name: 'library' };
   if (a === 'training' && b) return { name: 'exercise', id: b };
   if (a === 'training') return { name: 'workout' };
   if (a === 'geschafft' && b) return { name: 'summary', id: b };
@@ -40,6 +47,9 @@ export function href(route: Route): string {
       const path = ['#/planen', route.planId, route.original].filter(Boolean).map((x, i) => (i ? encodeURIComponent(x!) : x)).join('/');
       return route.date ? `${path}?datum=${route.date}` : path;
     }
+    case 'library': return '#/uebungen';
+    case 'exerciseInfo': return `#/uebungen/${encodeURIComponent(route.id)}`;
+    case 'customExercise': return route.id ? `#/uebungen/bearbeiten/${encodeURIComponent(route.id)}` : '#/uebungen/neu';
     case 'history': return '#/verlauf';
     case 'session': return `#/verlauf/${encodeURIComponent(route.id)}`;
     case 'data': return '#/daten';

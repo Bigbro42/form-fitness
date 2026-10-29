@@ -44,11 +44,13 @@ function serviceWorker(): Plugin {
     generateBundle(_options, bundle) {
       const template = fs.readFileSync(path.resolve(import.meta.dirname, 'src/sw-template.js'), 'utf8');
       const files = Object.keys(bundle).filter((f) => !f.endsWith('.map')).sort();
+      const shell = files.filter((f) => !f.startsWith('media/'));
+      const media = files.filter((f) => f.startsWith('media/'));
       const version = String(Date.now());
       this.emitFile({
         type: 'asset',
         fileName: 'sw.js',
-        source: template.replace('__PRECACHE__', JSON.stringify(['./', ...files])).replace('__VERSION__', version),
+        source: template.replace('__PRECACHE__', JSON.stringify(['./', ...shell])).replace('__MEDIA__', JSON.stringify(media)).replace('__VERSION__', version),
       });
     },
   };

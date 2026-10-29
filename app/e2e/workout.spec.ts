@@ -169,6 +169,13 @@ test('exercise without verified photo shows a labelled muscle overview', async (
   await addExercise(page, 'bird dog');
   await expect(page.getByLabel('Muskelübersicht')).toContainText('keine Bewegungsdemonstration');
   await expect(page.locator('main img')).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+  // Nothing inside the card may stick out of it either.
+  const overflow = await page.locator('.muscle-card').evaluate((card) => {
+    const r = card.getBoundingClientRect();
+    return [...card.querySelectorAll('*')].filter((el) => el.getBoundingClientRect().right > r.right + 1).length;
+  });
+  expect(overflow).toBe(0);
 });
 
 test('small screens: weights are fully visible and nothing hides behind the rest timer', async ({ page }) => {

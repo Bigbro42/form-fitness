@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { BUILTIN_EXERCISES, EQUIPMENT_LABELS, MUSCLE_LABELS } from '../domain/catalog';
+import { EQUIPMENT_LABELS, LIBRARY_EXERCISES, MUSCLE_LABELS, muscleText } from '../domain/catalog';
+import { EMPTY_FILTER, filterLibrary } from '../domain/library';
 import type { EquipmentId, ExerciseDef, MuscleGroup } from '../domain/types';
 import { adjustRest, stopRest, useAppState } from '../state/store';
 import { Sheet } from './components';
@@ -108,26 +109,6 @@ export function ElapsedTime({ since }: { since: string | null }) {
   return <span class="tabular">{clock((now - Date.parse(since)) / 1000)}</span>;
 }
 
-const norm = (s: string) => s.toLocaleLowerCase('de-AT').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss');
-
-/** Lower is better: exact name, name starts with the query, a name word starts with it, anything else. */
-function rank(x: ExerciseDef, query: string, words: string[]): number {
-  const name = norm(x.name);
-  if (!words.length) return 0;
-  if (name === query) return 0;
-  if (name.startsWith(query)) return 1;
-  const nameWords = name.split(/[\s-]+/);
-  if (words.every((w) => nameWords.some((n) => n.startsWith(w)))) return 2;
-  if (words.every((w) => name.includes(w))) return 3;
-  return 4; // matched via muscle, equipment or id only
-}
-
-function matches(x: ExerciseDef, words: string[]): boolean {
-  if (!words.length) return true;
-  const hay = norm([x.name, x.id, ...x.aliases, ...[...x.primaryMuscles, ...x.secondaryMuscles].map((m) => MUSCLE_LABELS[m]), ...x.equipment.map((e) => EQUIPMENT_LABELS[e])].join(' '));
-  return words.every((w) => hay.includes(w));
-}
-
 /** Search + filters over the library. Recently used exercises first when not searching. */
 export function ExercisePicker({ title, onPick, onClose, recent, custom }: {
   title: string;
@@ -139,22 +120,17 @@ export function ExercisePicker({ title, onPick, onClose, recent, custom }: {
   const [query, setQuery] = useState('');
   const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
   const [equipment, setEquipment] = useState<EquipmentId | null>(null);
-  const all = useMemo(() => [...custom, ...BUILTIN_EXERCISES], [custom]);
-  const words = norm(query).split(/\s+/).filter(Boolean);
-  const filtered = all.filter((x) => matches(x, words)
-    && (!muscle || x.primaryMuscles.includes(muscle) || x.secondaryMuscles.includes(muscle))
-    && (!equipment || x.equipment.includes(equipment)));
-  const showRecent = !words.length && !muscle && !equipment && recent.length > 0;
+  const all = useMemo(() => [...custom, ...LIBRARY_EXERCISES], [custom]);
+  const filtered = filterLibrary(all, { ...EMPTY_FILTER, query, group: muscle, equipment });
+  const showRecent = !query.trim() && !muscle && !equipment && recent.length > 0;
   const recentDefs = showRecent ? recent.map((id) => all.find((x) => x.id === id)).filter((x): x is ExerciseDef => Boolean(x)) : [];
-  const list = showRecent ? filtered.filter((x) => !recent.includes(x.id)) : filtered;
-  const q = words.join(' ');
-  const sortedList = [...list].sort((a, b) => rank(a, q, words) - rank(b, q, words) || a.name.localeCompare(b.name, 'de'));
+  const sortedList = showRecent ? filtered.filter((x) => !recent.includes(x.id)) : filtered;
 
   const row = (x: ExerciseDef) => (
     <button key={x.id} class="row pick-row" onClick={() => onPick(x)}>
       <div class="row-main">
         <b>{x.name}</b>
-        <small>{[...x.primaryMuscles, ...x.secondaryMuscles].map((m) => MUSCLE_LABELS[m]).join(' · ')} · {x.equipment.map((e) => EQUIPMENT_LABELS[e]).join(', ')}</small>
+        <small>{muscleText(x)} · {x.equipment.map((e) => EQUIPMENT_LABELS[e]).join(', ')}</small>
       </div>
       <Icon name="plus" size={20} class="chevron" />
     </button>
@@ -188,5 +164,33 @@ export function ExercisePicker({ title, onPick, onClose, recent, custom }: {
         <div class="empty"><p class="muted small">Keine passende Übung. Versuche einen anderen Begriff oder entferne Filter.</p></div>
       )}
     </Sheet>
+  );
+}
+
+/** Step-by-step guide, common mistakes, breathing and variants. */
+export function Technique({ def }: { def: ExerciseDef }) {
+  return (
+    <div class="stack technique" style={{ marginTop: 'var(--space-3)' }}>
+      {def.steps.length ? (
+        <ol class="steps">{def.steps.map((s) => <li key={s}>{s}</li>)}</ol>
+      ) : <p style={{ margin: 0 }}>{def.cue}</p>}
+      {def.mistakes.length > 0 && (
+        <div>
+          <p class="eyebrow">Häufige Fehler</p>
+          <ul class="mistakes">{def.mistakes.map((m) => <li key={m}>{m}</li>)}</ul>
+        </div>
+      )}
+      <div>
+        <p class="eyebrow">Atmung & Tempo</p>
+        <p style={{ margin: 0 }}>{def.breathing}</p>
+      </div>
+      {(def.easier || def.harder) && (
+        <dl class="kv kv-text">
+          {def.easier && <><dt>Leichter</dt><dd>{def.easier}</dd></>}
+          {def.harder && <><dt>Schwerer</dt><dd>{def.harder}</dd></>}
+        </dl>
+      )}
+      <p class="muted small" style={{ margin: 0 }}>Bei Schmerzen abbrechen. Die Anleitung ist allgemein gehalten, nicht fachlich geprüft und ersetzt keine persönliche Anleitung.</p>
+    </div>
   );
 }

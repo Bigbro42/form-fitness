@@ -54,3 +54,14 @@
 .v20-confirm-exercise{padding:17px;margin-top:14px;background:#1a3624;border:1px solid #4e9865;border-radius:15px}.v20-confirm-exercise h2{font-size:18px;color:white;margin:7px 0}.v20-confirm-exercise p{font-size:12px;color:#c2d5c6;line-height:1.55}.v20-confirm-exercise button{width:100%}
 .v20-photo-link{display:block;padding:12px;width:100%;background:#172d20;border:1px solid #467c58;border-radius:12px;font-weight:750;color:#d4f3de;margin-top:8px}
 @media(max-width:360px){.v20-calendar,.v20-selected,.v20-form-panel{padding:13px}.v20-month-grid{gap:3px}.v20-topline h1{font-size:24px}.v20-actions,.v20-hero-actions{flex-wrap:wrap}.v20-day{font-size:12px}}
+
+/* FORM V22: clear separation between a draft and a completed workout */
+.v22-empty-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.v22-empty-actions button{flex:1;min-width:130px}
+.v22-legend-note{display:block;width:100%;font-size:11px;color:#849f8d;margin-top:4px}
+.v20-hero-actions{flex-wrap:wrap}
+.v22-archive-banner{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;margin:12px 0;background:#152c20;border:1px solid #4ba36a;border-radius:15px}
+.v22-archive-banner b{color:#72f4a2}
+.v22-archive-banner p{font-size:12px;color:#b1cab8;margin:5px 0 0}
+.v22-archive-banner button{border:1px solid #4ca96f;border-radius:10px;background:#235434;color:#f1fff4;padding:11px 13px;font-weight:700}
+.v22-archive-banner button:focus-visible{outline:3px solid #73f5ac;outline-offset:2px}

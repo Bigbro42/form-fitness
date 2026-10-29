@@ -85,8 +85,10 @@ export async function start(): Promise<void> {
       set({ error: `Die Übernahme aus der bisherigen App ist fehlgeschlagen: ${(e as Error).message}. Die alten Daten sind unverändert.` });
     }
     await refresh();
+    set({ phase: 'ready', migration });
+    // Never block the start on this: browsers may delay or prompt before answering.
     const hasData = state.data.sessions.length > 0 || state.data.plans.length > 0;
-    set({ phase: 'ready', migration, persist: await persistState(hasData) });
+    persistState(hasData).then((persist) => set({ persist }), () => undefined);
   } catch (e) {
     console.error(e);
     set({ phase: 'error', error: readableError(e) });

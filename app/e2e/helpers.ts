@@ -25,9 +25,16 @@ export async function openNewApp(page: Page, hash = '') {
   await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeVisible();
 }
 
+/**
+ * Checks with the page's own fonts and again with a wide fallback font: on an iPhone SF Pro is
+ * used, on CI machines whatever is installed, so text must never depend on a narrow font.
+ */
 export async function expectNoHorizontalOverflow(page: Page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow, 'horizontal overflow in px').toBeLessThanOrEqual(0);
+  const measure = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(await measure(), 'horizontal overflow in px').toBeLessThanOrEqual(0);
+  const style = await page.addStyleTag({ content: '* { font-family: Verdana, "DejaVu Sans", sans-serif !important; }' });
+  expect(await measure(), 'horizontal overflow in px with a wide font').toBeLessThanOrEqual(0);
+  await style.evaluate((el) => (el as Element).remove());
 }
 
 /** Uses the legacy app the way a person does: spontaneous workout with two exercises. */

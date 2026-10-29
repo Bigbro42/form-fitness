@@ -7,7 +7,7 @@ type Filter = 'completed' | 'draft' | 'all';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'completed', label: 'Abgeschlossen' },
-  { id: 'draft', label: 'Nicht abgeschlossen' },
+  { id: 'draft', label: 'Offen' },
   { id: 'all', label: 'Alle' },
 ];
 

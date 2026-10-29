@@ -74,3 +74,14 @@ test('later legacy entries are picked up on the next start', async ({ page }) =>
   await expect(page.getByText('Neue Einträge übernommen')).toBeVisible();
   await expect(page.locator('.stat').nth(0)).toContainText('2');
 });
+
+test('starts even if the browser never answers the storage persistence request', async ({ page }) => {
+  await page.addInitScript(() => {
+    const never = () => new Promise<boolean>(() => undefined);
+    Object.defineProperty(navigator.storage, 'persist', { value: never });
+    Object.defineProperty(navigator.storage, 'persisted', { value: never });
+  });
+  await logLegacyWorkout(page);
+  await openNewApp(page);
+  await expect(page.locator('.stat').nth(0)).toContainText('1');
+});

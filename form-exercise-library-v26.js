@@ -21,6 +21,9 @@ for(const x of EXERCISE_DATA){
  catalog[x.id]={name:x.name,target:x.target,muscles:x.muscles,tip:x.tip,easy:x.easy,hard:x.hard,link:'',equipment:x.equipment,kind:x.kind};
  meta[x.id]={equipment:x.equipment,kind:x.kind,base:x.target};
 }
+const V26_MEDIA={"hexbpress":"Dumbbell_Bench_Press","hexbentrow":"One-Arm_Dumbbell_Row","hexshoulderpress":"Dumbbell_Shoulder_Press","barbsquat":"Barbell_Squat","barbdeadlift":"Barbell_Deadlift","legpress":"Leg_Press","legextension":"Leg_Extensions","latmachine":"Wide-Grip_Lat_Pulldown","rowmachine":"Seated_Cable_Rows","chestmachine":"Machine_Bench_Press","tricepsmachine":"Triceps_Pushdown"};
+const oldPhotoSource=photoSrc;
+photoSrc=function(id,step=0){const dir=V26_MEDIA[id];return dir?'media/exercises/'+dir+'/'+step+'.jpg?v=26':oldPhotoSource(id,step)};
 const originalMeta={
  squat:'strength',bridge:'strength',lunge:'strength',deadbug:'strength',pushup:'strength',snow:'strength',hinge:'strength',sideplank:'hold',plank:'hold',calf:'strength',bird:'strength',wall:'hold',superman:'strength',pike:'strength',diamond:'strength',split:'strength',sidestep:'strength',singlebridge:'strength',heeltoe:'strength',heeltilt:'strength',hollow:'hold',wallpush:'strength',wallslide:'mobility',pronecobra:'hold',bearhold:'hold'
 };

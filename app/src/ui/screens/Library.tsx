@@ -22,7 +22,8 @@ export function presetLibraryRegion(region: LibraryFilter['region']) {
   rememberedMap = true;
 }
 
-function Thumb({ x }: { x: ExerciseDef }) {
+function Thumb({ x, own }: { x: ExerciseDef; own?: string }) {
+  if (own) return <img class="thumb" src={own} alt="" decoding="async" />;
   if (x.media) return <img class="thumb" src={BASE + x.media.frames[0]} alt="" loading="lazy" decoding="async" />;
   return <span class="thumb thumb-none" aria-hidden="true"><Icon name="dumbbell" size={20} /></span>;
 }
@@ -97,7 +98,7 @@ export function Library() {
         <div class="list">
           {list.map((x) => (
             <a key={x.id} class="row lib-row" href={href({ name: 'exerciseInfo', id: x.id })}>
-              <Thumb x={x} />
+              <Thumb x={x} own={state.photos[x.id]} />
               <div class="row-main">
                 <b>{x.name}</b>
                 <small>{muscleText(x) || 'Keine Muskelangabe'}</small>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { getKv, listSnapshots, openFormDb, readUserData, type Db, type LegacyImportState, type Snapshot } from '../db/db';
+import { deletePhoto, getKv, listPhotos, listSnapshots, openFormDb, putPhoto, readUserData, type Db, type ExercisePhoto, type LegacyImportState, type Snapshot } from '../db/db';
 import { normalizeSettings } from '../domain/settings';
 import { DEFAULT_SETTINGS, type ExerciseDef, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
 import { runLegacyMigration, type MigrationResult } from '../legacy/migrate';
@@ -17,6 +17,8 @@ export interface AppState {
   persist: PersistState;
   /** Running rest timer, if any. */
   rest: { endsAt: number; total: number } | null;
+  /** Own exercise photos: exercise id → object URL. */
+  photos: Record<string, string>;
 }
 
 let db: Db | null = null;
@@ -29,6 +31,7 @@ let state: AppState = {
   snapshots: [],
   persist: 'unsupported',
   rest: null,
+  photos: {},
 };
 const listeners = new Set<() => void>();
 
@@ -58,8 +61,24 @@ export function useAppState(): AppState {
 /** Re-reads everything from IndexedDB after a write. */
 export async function refresh(): Promise<void> {
   const d = getDb();
-  const [data, legacy, snapshots] = await Promise.all([readUserData(d), getKv(d, 'legacyImport'), listSnapshots(d)]);
-  set({ data, legacy: legacy ?? null, snapshots });
+  const [data, legacy, snapshots, photos] = await Promise.all([readUserData(d), getKv(d, 'legacyImport'), listSnapshots(d), listPhotos(d)]);
+  for (const url of Object.values(state.photos)) URL.revokeObjectURL(url);
+  set({ data, legacy: legacy ?? null, snapshots, photos: Object.fromEntries(photos.map((p) => [p.exerciseId, URL.createObjectURL(p.blob)])) });
+}
+
+/** Stores the user's own photo for an exercise (replaces an existing one). */
+export async function saveExercisePhoto(photo: ExercisePhoto): Promise<void> {
+  await putPhoto(getDb(), photo);
+  const old = state.photos[photo.exerciseId];
+  if (old) URL.revokeObjectURL(old);
+  set({ photos: { ...state.photos, [photo.exerciseId]: URL.createObjectURL(photo.blob) } });
+}
+
+export async function removeExercisePhoto(exerciseId: string): Promise<void> {
+  await deletePhoto(getDb(), exerciseId);
+  const { [exerciseId]: old, ...rest } = state.photos;
+  if (old) URL.revokeObjectURL(old);
+  set({ photos: rest });
 }
 
 async function persistState(request: boolean): Promise<PersistState> {

@@ -21,8 +21,17 @@ const BASE = import.meta.env.BASE_URL;
 
 function Media({ def }: { def: ExerciseDef | undefined }) {
   const [broken, setBroken] = useState<Record<number, boolean>>({});
+  const own = useAppState().photos[def?.id ?? ''];
+  const ownFigure = own && (
+    <figure class="media">
+      <img class="own-photo-img" src={own} alt={`Eigenes Foto: ${def?.name ?? ''}`} />
+      <figcaption>Dein Foto</figcaption>
+    </figure>
+  );
   if (def?.media && !Object.keys(broken).length) {
     return (
+      <>
+      {ownFigure}
       <figure class="media">
         <div class="media-frames">
           {def.media.frames.map((src, i) => (
@@ -34,8 +43,10 @@ function Media({ def }: { def: ExerciseDef | undefined }) {
         </div>
         <figcaption>Foto: <a href={def.media.sourceUrl} target="_blank" rel="noopener">{def.media.credit}</a> ({def.media.license})</figcaption>
       </figure>
+      </>
     );
   }
+  if (ownFigure) return ownFigure;
   // No verified photo: show the muscles, clearly labelled, never a different exercise.
   return (
     <section class="muscle-card" aria-label="Muskelübersicht">

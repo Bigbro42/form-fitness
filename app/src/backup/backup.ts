@@ -1,4 +1,4 @@
-import { listSnapshots, mergeUserData, readUserData, saveSnapshot, type Db, type MergeOutcome, type MergePolicy } from '../db/db';
+import { listPhotos, listSnapshots, mergePhotos, mergeUserData, readUserData, saveSnapshot, type Db, type ExercisePhoto, type MergeOutcome, type MergePolicy } from '../db/db';
 import { isIsoDate } from '../domain/dates';
 import { newId } from '../domain/ids';
 import type { PlannedWorkout, UserData, WorkoutSession } from '../domain/types';
@@ -6,7 +6,8 @@ import { convertLegacy, inputFromBackup, isLegacyBackup, type ConversionReport }
 
 export const BACKUP_FORMAT = 'form-backup';
 export const BACKUP_SCHEMA = 1;
-const MAX_BACKUP_BYTES = 50 * 1024 * 1024;
+// Own exercise photos make backups larger (roughly 0.2–0.4 MB per photo).
+const MAX_BACKUP_BYTES = 150 * 1024 * 1024;
 
 export interface BackupFile {
   format: typeof BACKUP_FORMAT;
@@ -16,12 +17,55 @@ export interface BackupFile {
   data: UserData;
   /** Untouched legacy localStorage values from the latest import, so nothing is ever lost. */
   legacyRaw: Record<string, string> | null;
+  /** Own exercise photos (added later; older backups have none). */
+  photos?: BackupPhoto[];
 }
 
-export async function createBackup(db: Db, now = new Date()): Promise<BackupFile> {
+export interface BackupPhoto {
+  exerciseId: string;
+  type: string;
+  /** Base64 of the image file. */
+  data: string;
+  width: number;
+  height: number;
+  updatedAt: string;
+}
+
+async function toBase64(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let out = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) out += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(out);
+}
+
+function fromBase64(data: string, type: string): Blob {
+  const raw = atob(data);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return new Blob([bytes], { type });
+}
+
+const PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+function validPhoto(p: unknown): p is BackupPhoto {
+  const x = p as BackupPhoto;
+  return typeof x === 'object' && x !== null && typeof x.exerciseId === 'string' && x.exerciseId.length > 0 && PHOTO_TYPES.has(x.type)
+    && typeof x.data === 'string' && /^[A-Za-z0-9+/]+=*$/.test(x.data) && typeof x.updatedAt === 'string'
+    && Number.isFinite(x.width) && Number.isFinite(x.height);
+}
+
+/**
+ * Full backup. Photos are left out of the internal snapshots taken before an import: an import
+ * never deletes photos, and snapshots should stay small.
+ */
+export async function createBackup(db: Db, now = new Date(), opts: { photos?: boolean } = {}): Promise<BackupFile> {
   const data = await readUserData(db);
   const legacy = (await listSnapshots(db)).find((s) => s.kind === 'legacy-storage');
+  const photos = opts.photos === false ? [] : await Promise.all((await listPhotos(db)).map(async (p): Promise<BackupPhoto> => ({
+    exerciseId: p.exerciseId, type: p.blob.type || 'image/jpeg', data: await toBase64(p.blob), width: p.width, height: p.height, updatedAt: p.updatedAt,
+  })));
   return {
+    ...(photos.length ? { photos } : {}),
     format: BACKUP_FORMAT,
     schemaVersion: BACKUP_SCHEMA,
     app: 'FORM.',
@@ -32,7 +76,7 @@ export async function createBackup(db: Db, now = new Date()): Promise<BackupFile
 }
 
 export type ParsedBackup =
-  | { kind: 'form'; file: BackupFile; sessions: WorkoutSession[]; plans: PlannedWorkout[]; skipped: string[] }
+  | { kind: 'form'; file: BackupFile; sessions: WorkoutSession[]; plans: PlannedWorkout[]; photos: BackupPhoto[]; skipped: string[] }
   | { kind: 'legacy'; sessions: WorkoutSession[]; plans: PlannedWorkout[]; settings: Partial<UserData['settings']>; report: ConversionReport };
 
 export class BackupError extends Error {}
@@ -72,7 +116,8 @@ export function parseBackup(text: string, fileName: string, now = new Date()): P
     const skipped: string[] = [];
     const sessions = file.data.sessions.filter((s, i) => validSession(s) || (skipped.push(`Training #${i + 1}`), false));
     const plans = file.data.plans.filter((p, i) => validPlan(p) || (skipped.push(`Termin #${i + 1}`), false));
-    return { kind: 'form', file, sessions, plans, skipped };
+    const photos = (Array.isArray(file.photos) ? file.photos : []).filter((p, i) => validPhoto(p) || (skipped.push(`Foto #${i + 1}`), false));
+    return { kind: 'form', file, sessions, plans, photos, skipped };
   }
   if (isLegacyBackup(data)) {
     // Legacy ids are derived from date / random session id, so the same workout imported from
@@ -87,9 +132,9 @@ export function parseBackup(text: string, fileName: string, now = new Date()): P
  * Imports a parsed backup. A full snapshot of the current data is stored first, so the
  * previous state can always be downloaded again.
  */
-export async function importBackup(db: Db, parsed: ParsedBackup, mode: 'merge' | 'replace', fileName: string, now = new Date()): Promise<MergeOutcome> {
+export async function importBackup(db: Db, parsed: ParsedBackup, mode: 'merge' | 'replace', fileName: string, now = new Date()): Promise<MergeOutcome & { photos?: number }> {
   const policy: MergePolicy = mode === 'replace' ? 'replace' : parsed.kind === 'form' ? 'newer-wins' : 'add-missing';
-  const before = await createBackup(db, now);
+  const before = await createBackup(db, now, { photos: false });
   await saveSnapshot(db, {
     id: newId('snap'),
     takenAt: now.toISOString(),
@@ -98,13 +143,15 @@ export async function importBackup(db: Db, parsed: ParsedBackup, mode: 'merge' |
     payload: JSON.stringify(before),
   });
   if (parsed.kind === 'form') {
-    return mergeUserData(db, {
+    const photos = parsed.photos.map((p): ExercisePhoto => ({ exerciseId: p.exerciseId, blob: fromBase64(p.data, p.type), width: p.width, height: p.height, updatedAt: p.updatedAt }));
+    const outcome = await mergeUserData(db, {
       sessions: parsed.sessions,
       plans: parsed.plans,
       templates: Array.isArray(parsed.file.data.templates) ? parsed.file.data.templates : [],
       customExercises: parsed.file.data.customExercises ?? [],
       settings: parsed.file.data.settings,
     }, policy);
+    return { ...outcome, photos: photos.length ? await mergePhotos(db, photos) : 0 };
   }
   return mergeUserData(db, parsed, policy);
 }

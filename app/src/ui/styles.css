@@ -472,3 +472,11 @@ button.row:active, a.row:active { background: var(--surface-2); }
 .head-actions { display: flex; gap: var(--space-2); }
 .plain-list { margin: var(--space-2) 0 0; padding-left: 1.2em; display: grid; gap: var(--space-1); }
 .chip-btn:disabled { opacity: 0.45; }
+
+/* Own exercise photos */
+.own-photo { padding: var(--space-4); border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+.own-photo .h3 { margin: 0; }
+.own-photo-img { display: block; width: 100%; max-height: 60vh; object-fit: contain; border-radius: calc(var(--radius) - 4px); background: #000; margin-top: var(--space-3); }
+.own-photo-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.own-photo label.btn { cursor: pointer; position: relative; }
+.is-busy { opacity: 0.6; pointer-events: none; }

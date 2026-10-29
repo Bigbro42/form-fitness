@@ -25,7 +25,8 @@ function dateTime(iso: string) {
 type Pending = { parsed: ParsedBackup; fileName: string };
 
 export function Data() {
-  const { data, legacy, snapshots, persist } = useAppState();
+  const { data, legacy, snapshots, persist, photos } = useAppState();
+  const photoCount = Object.keys(photos).length;
   const [pending, setPending] = useState<Pending | null>(null);
   const [mode, setMode] = useState<'merge' | 'replace'>('merge');
   const [message, setMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null);
@@ -57,7 +58,8 @@ export function Data() {
       const outcome = await importBackup(getDb(), pending.parsed, mode, pending.fileName);
       await refresh();
       const kept = outcome.keptLocal ? ` ${outcome.keptLocal} vorhandene Einträge waren aktueller und wurden behalten.` : '';
-      setMessage({ tone: 'info', text: `Import abgeschlossen: ${outcome.added} neu, ${outcome.updated} aktualisiert.${kept} Der vorherige Stand ist als Sicherung gespeichert.` });
+      const photos = outcome.photos ? ` ${outcome.photos} ${outcome.photos === 1 ? 'Foto' : 'Fotos'} übernommen.` : '';
+      setMessage({ tone: 'info', text: `Import abgeschlossen: ${outcome.added} neu, ${outcome.updated} aktualisiert.${kept}${photos} Der vorherige Stand ist als Sicherung gespeichert.` });
       setPending(null);
     } catch (err) {
       setMessage({ tone: 'error', text: `Import fehlgeschlagen, es wurde nichts verändert: ${(err as Error).message}` });
@@ -72,7 +74,7 @@ export function Data() {
   };
 
   const p = pending?.parsed;
-  const incoming = p ? { sessions: p.sessions.length, completed: p.sessions.filter((s) => s.status === 'completed').length, plans: p.plans.length } : null;
+  const incoming = p ? { sessions: p.sessions.length, completed: p.sessions.filter((s) => s.status === 'completed').length, plans: p.plans.length, photos: p.kind === 'form' ? p.photos.length : 0 } : null;
 
   return (
     <main class="screen">
@@ -96,6 +98,7 @@ export function Data() {
           <dl class="kv" style={{ marginTop: 'var(--space-3)' }}>
             <dt>Trainings</dt><dd>{data.sessions.length}</dd>
             <dt>Kalendertermine</dt><dd>{data.plans.length}</dd>
+            <dt>Eigene Fotos</dt><dd>{photoCount}</dd>
             <dt>Speicherschutz</dt>
             <dd>{persist === 'persisted' ? 'Aktiv' : persist === 'unsupported' ? 'Nicht verfügbar' : 'Nicht aktiv'}</dd>
           </dl>
@@ -108,7 +111,7 @@ export function Data() {
 
         <section class="card" aria-labelledby="backup">
           <h2 class="h3" id="backup">Backup</h2>
-          <p class="muted small">Die JSON-Datei enthält alle Trainings, Termine und Einstellungen sowie die Rohdaten der bisherigen App. Speichere sie z. B. in „Dateien“ oder iCloud Drive.</p>
+          <p class="muted small">Die JSON-Datei enthält alle Trainings, Termine, Einstellungen und eigenen Fotos sowie die Rohdaten der bisherigen App. Speichere sie z. B. in „Dateien“ oder iCloud Drive.</p>
           <div class="stack" style={{ marginTop: 'var(--space-3)' }}>
             <button class="btn btn-primary btn-block" onClick={exportJson}><Icon name="download" size={18} />Backup herunterladen (JSON)</button>
             <button class="btn btn-secondary btn-block" onClick={() => download(`FORM_Trainings_${today()}.csv`, 'text/csv;charset=utf-8', sessionsToCsv(data.sessions))}>
@@ -161,8 +164,9 @@ export function Data() {
       {pending && p && incoming && (
         <Sheet title="Backup importieren" onClose={() => !busy && setPending(null)}>
           <p>
-            „{pending.fileName}“ {p.kind === 'legacy' ? '(bisherige App)' : ''} enthält {incoming.sessions} Trainings ({incoming.completed} abgeschlossen) und {incoming.plans} Kalendertermine.
+            „{pending.fileName}“ {p.kind === 'legacy' ? '(bisherige App)' : ''} enthält {incoming.sessions} Trainings ({incoming.completed} abgeschlossen) und {incoming.plans} Kalendertermine{incoming.photos ? ` sowie ${incoming.photos} eigene Fotos` : ''}.
           </p>
+          {incoming.photos > 0 && <p class="muted small">Fotos werden ergänzt oder durch neuere ersetzt, aber nie gelöscht – auch nicht beim Ersetzen.</p>}
           {p.kind === 'form' && p.skipped.length > 0 && <Notice tone="warn"><p>{p.skipped.length} beschädigte Einträge werden übersprungen.</p></Notice>}
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
             <legend class="visually-hidden">Importart</legend>

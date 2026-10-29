@@ -26,6 +26,19 @@ function atlasSvg(view){
  return '<path d="'+x.d+'" class="v20-region'+(active?' v20-active':'')+(g?' v20-target':'')+'"'+(g?' data-atlas-muscle="'+g+'" data-atlas-name="'+x.id+'"':'')+'><title>'+x.id.replace(/-/g,' ')+'</title></path>';
  }).join('')+'</svg>';
 }
+// Reuse the licensed anterior/posterior atlas for exercise detail cards.
+window.FORM_muscleDiagram=function(groups){
+ const active=new Set(Array.isArray(groups)?groups:[]);
+ return '<div class="v25-atlas-images">'+['front','back'].map(view=>{
+  const vb=view==='front'?'0 0 35 93':'37 0 35 93';
+  const name=view==='front'?'Vorderansicht':'Rückansicht';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+vb+'" role="img" aria-label="Muskelübersicht '+name+'">'+
+   ATLAS[view].map(x=>{
+    const g=groupOf(x.id);
+    return '<path class="v25-atlas-region'+(g&&active.has(g)?' v25-active':'')+'" d="'+x.d+'"/>';
+   }).join('')+'</svg>';
+ }).join('')+'</div>';
+};
 function upgradeAtlas(){
  if(state.view!=='body')return;
  const stage=document.querySelector('.body-stage'),figures=document.querySelector('.body-figures');

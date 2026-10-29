@@ -3,7 +3,9 @@ import { formatDate } from '../../domain/dates';
 import type { SessionExercise, WorkoutSession } from '../../domain/types';
 import { useState } from 'preact/hooks';
 import { activeSession, useAppState } from '../../state/store';
-import { reopenSession } from '../../state/workout';
+import { repeatSession, reopenSession } from '../../state/workout';
+import { templateFromSession } from '../../domain/calendar';
+import { saveTemplate } from '../../state/store';
 import { Notice, Sheet, StatusChip } from '../components';
 import { Icon } from '../icons';
 import { href } from '../router';
@@ -54,12 +56,21 @@ function ExerciseCard({ x }: { x: SessionExercise }) {
 function SessionActions({ s }: { s: WorkoutSession }) {
   const state = useAppState();
   const [confirm, setConfirm] = useState(false);
+  const [saved, setSaved] = useState(false);
   const running = activeSession(state);
   if (s.status === 'active') return <a class="btn btn-primary btn-block" href={href({ name: 'workout' })}>Zum laufenden Training</a>;
   const blocked = running !== null;
   const label = s.status === 'completed' ? 'Korrigieren' : 'Fortsetzen';
   return (
     <>
+      {s.status === 'completed' && s.exercises.length > 0 && (
+        <>
+          <button class="btn btn-primary btn-block" disabled={blocked} onClick={() => repeatSession(s)}><Icon name="repeat" size={18} />Erneut trainieren</button>
+          <button class="btn btn-secondary btn-block" disabled={saved} onClick={() => { void saveTemplate(templateFromSession(s, s.title)); setSaved(true); }}>
+            <Icon name="copy" size={18} />{saved ? 'Als Vorlage gespeichert' : 'Als Vorlage speichern'}
+          </button>
+        </>
+      )}
       {blocked && <Notice tone="info"><p>Beende zuerst das laufende Training „{running!.title}“, um dieses zu {s.status === 'completed' ? 'korrigieren' : 'fortsetzen'}.</p></Notice>}
       <button class="btn btn-secondary btn-block" disabled={blocked} onClick={() => (s.status === 'completed' ? setConfirm(true) : reopenSession(s))}>
         <Icon name={s.status === 'completed' ? 'edit' : 'play'} size={18} />{label}

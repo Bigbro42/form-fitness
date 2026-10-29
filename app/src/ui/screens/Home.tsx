@@ -1,8 +1,9 @@
+import { describeRecurrence, upcoming } from '../../domain/calendar';
 import { formatDate, today } from '../../domain/dates';
 import { GOALS } from '../../domain/goals';
 import { overview } from '../../domain/summary';
 import { activeSession, dismissError, useAppState } from '../../state/store';
-import { startWorkout } from '../../state/workout';
+import { startFromOccurrence, startWorkout } from '../../state/workout';
 import { Notice, SessionRow } from '../components';
 import { Icon } from '../icons';
 import { href } from '../router';
@@ -17,6 +18,9 @@ export function Home() {
   const recent = data.sessions.filter((s) => s.status === 'completed').slice(0, 3);
   const imported = migration?.status === 'imported' ? migration.state : null;
   const active = activeSession(state);
+  const now = today();
+  const next = upcoming(data.plans, data.sessions, now, 3);
+  const todays = next.filter((e) => e.date === now && e.status === 'planned');
 
   return (
     <main class="screen">
@@ -59,6 +63,16 @@ export function Home() {
             </p>
             <span class="btn btn-primary btn-block" style={{ marginTop: 'var(--space-4)' }}>Fortsetzen<Icon name="chevron" size={18} /></span>
           </a>
+        ) : todays[0] ? (
+          <section class="card-hero" aria-labelledby="start">
+            <p class="eyebrow">Heute geplant{todays[0].plan.time ? ` · ${todays[0].plan.time} Uhr` : ''}</p>
+            <h2 class="h2" id="start">{todays[0].plan.title}</h2>
+            <p class="muted">{todays[0].plan.activity === 'sport' ? 'Sport / Kurs' : `${todays[0].plan.exercises.length} Übungen`} · {describeRecurrence(todays[0].plan)}</p>
+            <button class="btn btn-primary btn-block btn-lg" style={{ marginTop: 'var(--space-4)' }} onClick={() => startFromOccurrence(todays[0]!)}>
+              <Icon name="play" size={18} />Geplantes Training starten
+            </button>
+            <button class="btn btn-ghost btn-block" onClick={() => startWorkout(state)}>Lieber etwas anderes trainieren</button>
+          </section>
         ) : (
           <section class="card-hero" aria-labelledby="start">
             <h2 class="h2" id="start">Heute trainieren?</h2>
@@ -69,6 +83,26 @@ export function Home() {
           </section>
         )}
       </div>
+
+      <section class="section" aria-labelledby="next">
+        <div class="section-head">
+          <h2 class="h2" id="next">Als Nächstes</h2>
+          <a class="btn btn-ghost" href={href({ name: 'calendar' })}>Kalender</a>
+        </div>
+        {next.length ? (
+          <div class="list">
+            {next.map((e) => (
+              <a class="row" key={`${e.plan.id}|${e.original}`} href={href({ name: 'calendar', month: e.date.slice(0, 7) })}>
+                <div class="row-date" aria-hidden="true"><b>{Number(e.date.slice(8))}</b><small>{formatDate(e.date, { weekday: 'short' }).replace('.', '')}</small></div>
+                <div class="row-main"><b>{e.plan.title}</b><small>{e.plan.time ? `${e.plan.time} Uhr · ` : ''}{describeRecurrence(e.plan)}</small></div>
+                <Icon name="chevron" size={18} class="chevron" />
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p class="muted small">Nichts geplant. <a href={href({ name: 'plan' })}>Training planen</a> – einmalig oder z. B. jeden Montag.</p>
+        )}
+      </section>
 
       <section class="section" aria-labelledby="overview">
         <div class="section-head"><h2 class="h2" id="overview">Überblick</h2></div>

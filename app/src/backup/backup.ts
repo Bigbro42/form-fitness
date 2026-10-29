@@ -101,6 +101,7 @@ export async function importBackup(db: Db, parsed: ParsedBackup, mode: 'merge' |
     return mergeUserData(db, {
       sessions: parsed.sessions,
       plans: parsed.plans,
+      templates: Array.isArray(parsed.file.data.templates) ? parsed.file.data.templates : [],
       customExercises: parsed.file.data.customExercises ?? [],
       settings: parsed.file.data.settings,
     }, policy);

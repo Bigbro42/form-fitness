@@ -2,9 +2,10 @@
 import { makeLookup } from '../domain/catalog';
 import { today } from '../domain/dates';
 import * as S from '../domain/session';
-import type { ExerciseDef, GoalId, SetEntry, WorkoutSession } from '../domain/types';
+import type { AgendaEntry } from '../domain/calendar';
+import type { ExerciseDef, GoalId, PlannedExercise, SessionExercise, SetEntry, WorkoutSession } from '../domain/types';
 import { navigate } from '../ui/router';
-import { activeSession, deleteSession, saveSession, saveSettings, startRest, useAppState, type AppState } from './store';
+import { activeSession, deleteSession, getState, saveSession, saveSettings, startRest, useAppState, type AppState } from './store';
 
 export function useLookup() {
   const { data } = useAppState();
@@ -94,4 +95,41 @@ export function reopenSession(session: WorkoutSession): boolean {
 
 export function rememberRest(seconds: number) {
   void saveSettings({ restSeconds: seconds });
+}
+
+function exercisesFrom(list: readonly PlannedExercise[], goal: GoalId | null): SessionExercise[] {
+  const lookup = makeLookup(getState().data.customExercises);
+  return list.flatMap((x) => {
+    const def = lookup(x.exerciseId);
+    return def ? [S.newExercise(def, goal, x.sets)] : [];
+  });
+}
+
+/**
+ * Starts the workout of a calendar occurrence (on the actual day you train). An unfinished
+ * workout of the same occurrence is continued instead of starting a second one.
+ */
+export function startFromOccurrence(entry: AgendaEntry): boolean {
+  const state = getState();
+  if (activeSession(state)) {
+    navigate({ name: 'workout' });
+    return false;
+  }
+  if (entry.session && entry.session.status === 'draft') return reopenSession(entry.session);
+  const { plan } = entry;
+  let s = S.createSession({ date: today(), goal: plan.goal ?? state.data.settings.primaryGoal, title: plan.title, source: 'calendar' });
+  s = { ...s, activity: plan.activity, plannedRef: { planId: plan.id, occurrence: entry.original }, exercises: exercisesFrom(plan.exercises, plan.goal) };
+  void saveSession(s);
+  navigate({ name: 'workout' });
+  return true;
+}
+
+/** "Erneut trainieren": same exercises and set count, empty values (last values show as hints). */
+export function repeatSession(source: WorkoutSession): boolean {
+  if (activeSession()) return false;
+  let s = S.createSession({ date: today(), goal: source.goal, title: source.title });
+  s = { ...s, activity: source.activity, exercises: exercisesFrom(source.exercises.map((x) => ({ exerciseId: x.exerciseId, sets: x.sets.length })), source.goal) };
+  void saveSession(s);
+  navigate({ name: 'workout' });
+  return true;
 }

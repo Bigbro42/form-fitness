@@ -6,13 +6,20 @@ export type Route =
   | { name: 'workout' }
   | { name: 'exercise'; id: string }
   | { name: 'summary'; id: string }
+  | { name: 'calendar'; month?: string }
+  /** New plan (optionally on a date), edit a series, or change a single occurrence. */
+  | { name: 'plan'; planId?: string; original?: string; date?: string }
   | { name: 'history' }
   | { name: 'session'; id: string }
   | { name: 'data' };
 
 export function parseRoute(hash: string): Route {
-  const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
-  const [a, b] = parts;
+  const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
+  const params = new URLSearchParams(query);
+  const parts = (path ?? '').split('/').filter(Boolean).map(decodeURIComponent);
+  const [a, b, c] = parts;
+  if (a === 'kalender') return { name: 'calendar', ...(b && /^\d{4}-\d{2}$/.test(b) ? { month: b } : {}) };
+  if (a === 'planen') return { name: 'plan', ...(b ? { planId: b } : {}), ...(c ? { original: c } : {}), ...(params.get('datum') ? { date: params.get('datum')! } : {}) };
   if (a === 'training' && b) return { name: 'exercise', id: b };
   if (a === 'training') return { name: 'workout' };
   if (a === 'geschafft' && b) return { name: 'summary', id: b };
@@ -28,6 +35,11 @@ export function href(route: Route): string {
     case 'workout': return '#/training';
     case 'exercise': return `#/training/${encodeURIComponent(route.id)}`;
     case 'summary': return `#/geschafft/${encodeURIComponent(route.id)}`;
+    case 'calendar': return route.month ? `#/kalender/${route.month}` : '#/kalender';
+    case 'plan': {
+      const path = ['#/planen', route.planId, route.original].filter(Boolean).map((x, i) => (i ? encodeURIComponent(x!) : x)).join('/');
+      return route.date ? `${path}?datum=${route.date}` : path;
+    }
     case 'history': return '#/verlauf';
     case 'session': return `#/verlauf/${encodeURIComponent(route.id)}`;
     case 'data': return '#/daten';

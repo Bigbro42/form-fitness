@@ -224,12 +224,15 @@ button.row:active, a.row:active { background: var(--surface-2); }
 
 .field { display: grid; gap: var(--space-2); margin: var(--space-4) 0 0; padding: 0; border: 0; font-size: 14px; font-weight: 600; }
 .field legend { padding: 0; margin-bottom: var(--space-2); }
-.select, .textarea, .title-input {
+.select, .textarea, .title-input, .input {
   width: 100%; min-height: var(--tap); padding: 0 var(--space-3);
   background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius-s);
   font-size: 16px; font-weight: 500;
 }
 .textarea { padding: var(--space-3); resize: vertical; min-height: 88px; }
+.input { -webkit-appearance: none; appearance: none; }
+.input[type='date'], .input[type='time'] { min-width: 0; color-scheme: dark; }
+.input[aria-invalid='true'] { border-color: var(--danger); }
 .select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--text-2) 50%), linear-gradient(135deg, var(--text-2) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 36px; }
 
 .search { display: flex; align-items: center; gap: var(--space-2); min-height: var(--tap); padding: 0 var(--space-3); border-radius: var(--radius-s); background: var(--surface); border: 1px solid var(--line-strong); color: var(--text-3); }
@@ -345,3 +348,43 @@ button.row:active, a.row:active { background: var(--surface-2); }
 .done-badge { display: inline-grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); margin-bottom: var(--space-4); animation: pop 360ms var(--ease); }
 @keyframes pop { from { transform: scale(0.6); opacity: 0; } }
 .tabbar[hidden] { display: none; }
+
+/* ---------- Calendar ---------- */
+.icon-btn-accent { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-3); }
+.month { display: grid; gap: 4px; }
+.month-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.month-dow span { text-align: center; font-size: 11px; font-weight: 650; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 2px; }
+.day {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 46px; padding: 4px 0; border-radius: var(--radius-s); border: 1px solid transparent;
+  background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600;
+}
+.day-out { background: transparent; color: var(--text-3); }
+.day-today { border-color: var(--line-strong); }
+.day-today span:first-child { color: var(--accent); }
+.day-selected { background: var(--surface-3); border-color: var(--accent); }
+.marks { display: flex; gap: 3px; height: 6px; }
+.mark { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
+.mark-done { background: var(--accent); }
+.mark-planned { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.mark-draft { background: var(--warn); }
+.mark-missed { box-shadow: inset 0 0 0 1.5px var(--text-3); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); font-size: 12px; color: var(--text-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.occ-time { flex: none; width: 44px; font-weight: 700; color: var(--text-2); font-size: 14px; }
+.occ-skipped .row-main b { text-decoration: line-through; color: var(--text-3); }
+.sheet-group { padding-top: var(--space-3); border-top: 1px solid var(--line); }
+.sheet-group .eyebrow { margin-bottom: var(--space-2); }
+
+/* Plan editor */
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); }
+.two-col .field { margin-top: 0; }
+.chips-wrap { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+.select-inline { width: auto; min-height: 36px; font-size: 14px; }
+.plan-list { list-style: none; margin: 0; padding: 0; }
+.plan-ex { min-height: 56px; padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3); }
+.stepper { display: flex; gap: 4px; flex: none; }
+.template-save { display: flex; gap: var(--space-2); }
+.template-save .select { flex: 1; min-width: 0; }
+.tab { font-size: 10.5px; }

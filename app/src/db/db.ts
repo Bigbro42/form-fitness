@@ -1,8 +1,8 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import { DEFAULT_SETTINGS, type ExerciseDef, type PlannedWorkout, type Settings, type UserData, type WorkoutSession } from '../domain/types';
+import { DEFAULT_SETTINGS, type ExerciseDef, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
 
 export const DB_NAME = 'form';
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 export type SnapshotKind = 'legacy-storage' | 'user-data';
 
@@ -38,6 +38,7 @@ interface KvValues {
 interface FormDB extends DBSchema {
   sessions: { key: string; value: WorkoutSession; indexes: { date: string } };
   plans: { key: string; value: PlannedWorkout };
+  templates: { key: string; value: WorkoutTemplate };
   exercises: { key: string; value: ExerciseDef };
   snapshots: { key: string; value: Snapshot; indexes: { takenAt: string } };
   kv: { key: keyof KvValues; value: KvValues[keyof KvValues] };
@@ -56,6 +57,9 @@ export function openFormDb(name = DB_NAME): Promise<Db> {
         db.createObjectStore('snapshots', { keyPath: 'id' }).createIndex('takenAt', 'takenAt');
         db.createObjectStore('kv');
       }
+      if (oldVersion < 2) {
+        db.createObjectStore('templates', { keyPath: 'id' });
+      }
     },
     blocking() {
       // Another tab wants a newer schema: let it, this tab reloads into the new version.
@@ -73,16 +77,18 @@ export async function setKv<K extends keyof KvValues>(db: Db, key: K, value: KvV
 }
 
 export async function readUserData(db: Db): Promise<UserData> {
-  const tx = db.transaction(['sessions', 'plans', 'exercises', 'kv'], 'readonly');
-  const [sessions, plans, customExercises, settings] = await Promise.all([
+  const tx = db.transaction(['sessions', 'plans', 'templates', 'exercises', 'kv'], 'readonly');
+  const [sessions, plans, templates, customExercises, settings] = await Promise.all([
     tx.objectStore('sessions').getAll(),
     tx.objectStore('plans').getAll(),
+    tx.objectStore('templates').getAll(),
     tx.objectStore('exercises').getAll(),
     tx.objectStore('kv').get('settings') as Promise<Settings | undefined>,
   ]);
   await tx.done;
   sessions.sort((a, b) => b.date.localeCompare(a.date) || (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
-  return { sessions, plans, customExercises, settings: { ...DEFAULT_SETTINGS, ...settings } };
+  templates.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  return { sessions, plans, templates, customExercises, settings: { ...DEFAULT_SETTINGS, ...settings } };
 }
 
 interface Revisioned {
@@ -131,6 +137,7 @@ async function mergeInto<T extends Revisioned>(store: { get(id: string): Promise
 export interface MergeInput {
   sessions: WorkoutSession[];
   plans: PlannedWorkout[];
+  templates?: WorkoutTemplate[];
   customExercises?: ExerciseDef[];
   settings?: Partial<Settings>;
 }
@@ -141,13 +148,14 @@ export interface MergeInput {
  */
 export async function mergeUserData(db: Db, input: MergeInput, policy: MergePolicy): Promise<MergeOutcome> {
   const out: MergeOutcome = { added: 0, updated: 0, keptLocal: 0 };
-  const tx = db.transaction(['sessions', 'plans', 'exercises', 'kv'], 'readwrite');
+  const tx = db.transaction(['sessions', 'plans', 'templates', 'exercises', 'kv'], 'readwrite');
   const overwrite = policy === 'replace';
   if (overwrite) {
-    await Promise.all([tx.objectStore('sessions').clear(), tx.objectStore('plans').clear(), tx.objectStore('exercises').clear()]);
+    await Promise.all(['sessions', 'plans', 'templates', 'exercises'].map((s) => tx.objectStore(s as 'sessions').clear()));
   }
   await mergeInto(tx.objectStore('sessions'), input.sessions, policy, out);
   await mergeInto(tx.objectStore('plans'), input.plans, policy, out);
+  await mergeInto(tx.objectStore('templates'), input.templates ?? [], policy, out);
   for (const x of input.customExercises ?? []) {
     // Custom exercises are only ever added; an id that exists already keeps its definition.
     if (overwrite || !(await tx.objectStore('exercises').get(x.id))) await tx.objectStore('exercises').put(x);

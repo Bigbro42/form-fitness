@@ -147,6 +147,8 @@ export interface PlannedWorkout {
   goal: GoalId | null;
   /** Keyed by the original occurrence date. */
   exceptions: Record<IsoDate, OccurrenceException>;
+  /** A single occurrence changed on its own: the series skips it and this one-off replaces it. */
+  detachedFrom?: { planId: string; original: IsoDate };
   legacy?: LegacyOrigin;
   rev: number;
   updatedAt: IsoDateTime;
@@ -170,10 +172,22 @@ export const DEFAULT_SETTINGS: Settings = {
   updatedAt: '1970-01-01T00:00:00.000Z',
 };
 
+/** Reusable exercise list. Editing a template never changes past workouts. */
+export interface WorkoutTemplate {
+  id: string;
+  name: string;
+  activity: 'strength' | 'sport';
+  goal: GoalId | null;
+  exercises: PlannedExercise[];
+  rev: number;
+  updatedAt: IsoDateTime;
+}
+
 /** Everything that belongs to the user. Backups contain exactly this. */
 export interface UserData {
   sessions: WorkoutSession[];
   plans: PlannedWorkout[];
+  templates: WorkoutTemplate[];
   customExercises: ExerciseDef[];
   settings: Settings;
 }

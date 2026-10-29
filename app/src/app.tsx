@@ -1,9 +1,11 @@
 import { start, useAppState } from './state/store';
 import { Icon, type IconName } from './ui/icons';
 import { href, useRoute, type Route } from './ui/router';
+import { Calendar } from './ui/screens/Calendar';
 import { Data } from './ui/screens/Data';
 import { ExerciseScreen } from './ui/screens/ExerciseScreen';
 import { History } from './ui/screens/History';
+import { PlanEditor } from './ui/screens/PlanEditor';
 import { Home } from './ui/screens/Home';
 import { SessionDetail } from './ui/screens/SessionDetail';
 import { Summary } from './ui/screens/Summary';
@@ -15,6 +17,7 @@ void start();
 const TABS: { route: Route; label: string; icon: IconName; matches: Route['name'][] }[] = [
   { route: { name: 'home' }, label: 'Start', icon: 'home', matches: ['home'] },
   { route: { name: 'workout' }, label: 'Training', icon: 'dumbbell', matches: ['workout', 'exercise', 'summary'] },
+  { route: { name: 'calendar' }, label: 'Kalender', icon: 'calendar', matches: ['calendar', 'plan'] },
   { route: { name: 'history' }, label: 'Verlauf', icon: 'history', matches: ['history', 'session'] },
   { route: { name: 'data' }, label: 'Daten', icon: 'data', matches: ['data'] },
 ];
@@ -25,6 +28,8 @@ function Screen({ route }: { route: Route }) {
     case 'workout': return <Workout />;
     case 'exercise': return <ExerciseScreen id={route.id} />;
     case 'summary': return <Summary id={route.id} />;
+    case 'calendar': return <Calendar month={route.month} />;
+    case 'plan': return <PlanEditor planId={route.planId} original={route.original} date={route.date} />;
     case 'history': return <History />;
     case 'session': return <SessionDetail id={route.id} />;
     case 'data': return <Data />;
@@ -51,7 +56,7 @@ export function App() {
   }
   return (
     <div class={`app${route.name === 'exercise' ? ' app-focus' : ''}${rest ? ' has-rest' : ''}`}>
-      <Screen key={'id' in route ? `${route.name}:${route.id}` : route.name} route={route} />
+      <Screen key={route.name === 'plan' ? `plan:${route.planId}:${route.original}:${route.date}` : route.name === 'calendar' ? 'calendar' : 'id' in route ? `${route.name}:${route.id}` : route.name} route={route} />
       <RestBar />
       {/* Hidden while logging sets: more room, one-handed navigation at the bottom instead. */}
       <nav class="tabbar" aria-label="Hauptnavigation" hidden={route.name === 'exercise'}>

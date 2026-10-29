@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getKv, listSnapshots, openFormDb, readUserData, type Db, type LegacyImportState, type Snapshot } from '../db/db';
-import { DEFAULT_SETTINGS, type Settings, type UserData, type WorkoutSession } from '../domain/types';
+import { DEFAULT_SETTINGS, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
 import { runLegacyMigration, type MigrationResult } from '../legacy/migrate';
 
 export type PersistState = 'persisted' | 'not-persisted' | 'unsupported';
@@ -22,7 +22,7 @@ let db: Db | null = null;
 let state: AppState = {
   phase: 'loading',
   error: null,
-  data: { sessions: [], plans: [], customExercises: [], settings: DEFAULT_SETTINGS },
+  data: { sessions: [], plans: [], templates: [], customExercises: [], settings: DEFAULT_SETTINGS },
   legacy: null,
   migration: null,
   snapshots: [],
@@ -141,6 +141,36 @@ export function deleteSession(id: string): Promise<void> {
   return enqueue(() => getDb().delete('sessions', id));
 }
 
+export function savePlans(...plans: PlannedWorkout[]): Promise<void> {
+  const ids = new Set(plans.map((p) => p.id));
+  set({ data: { ...state.data, plans: [...state.data.plans.filter((p) => !ids.has(p.id)), ...plans] } });
+  return enqueue(async () => {
+    const tx = getDb().transaction('plans', 'readwrite');
+    await Promise.all([...plans.map((p) => tx.store.put(p)), tx.done]);
+  });
+}
+
+export function deletePlan(id: string): Promise<void> {
+  // Detached single occurrences belong to their series and go with it.
+  const remove = new Set([id, ...state.data.plans.filter((p) => p.detachedFrom?.planId === id).map((p) => p.id)]);
+  set({ data: { ...state.data, plans: state.data.plans.filter((p) => !remove.has(p.id)) } });
+  return enqueue(async () => {
+    const tx = getDb().transaction('plans', 'readwrite');
+    await Promise.all([...[...remove].map((x) => tx.store.delete(x)), tx.done]);
+  });
+}
+
+export function saveTemplate(t: WorkoutTemplate): Promise<void> {
+  const templates = [...state.data.templates.filter((x) => x.id !== t.id), t].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  set({ data: { ...state.data, templates } });
+  return enqueue(() => getDb().put('templates', t));
+}
+
+export function deleteTemplate(id: string): Promise<void> {
+  set({ data: { ...state.data, templates: state.data.templates.filter((x) => x.id !== id) } });
+  return enqueue(() => getDb().delete('templates', id));
+}
+
 export function saveSettings(patch: Partial<Settings>): Promise<void> {
   const settings = { ...state.data.settings, ...patch, updatedAt: new Date().toISOString() };
   set({ data: { ...state.data, settings } });
@@ -150,6 +180,10 @@ export function saveSettings(patch: Partial<Settings>): Promise<void> {
 /** Resolves once all pending writes are stored (used before showing "saved" states and in tests). */
 export function flushWrites(): Promise<unknown> {
   return writes;
+}
+
+export function getState(): AppState {
+  return state;
 }
 
 export function activeSession(s: AppState = state): WorkoutSession | null {

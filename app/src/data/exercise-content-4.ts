@@ -77,7 +77,7 @@ export const PART4: Record<string, Content> = {
   seatedrotation: { en: 'Seated Thoracic Rotation', aliases: ['sitzende rotation'], p: ['upperback', 'obliques'], pattern: 'mobility', level: 1,
     steps: ['Aufrecht auf einem Stuhl sitzen, Arme vor der Brust verschränkt.', 'Becken bleibt nach vorn.', 'Oberkörper langsam zu einer Seite drehen.', 'Zurück in die Mitte, Seite wechseln.'],
     mistakes: ['Becken dreht mit.', 'Zusammensacken statt aufrecht bleiben.'] },
-  deadhang: { en: 'Active Dead Hang', aliases: ['hängen', 'stange hängen'], p: ['forearms', 'lats'], s: ['shoulders'], pattern: 'pull-v', level: 2,
+  deadhang: { en: 'Active Dead Hang', aliases: ['hängen', 'stange hängen'], p: ['forearms', 'lats'], s: ['shoulders'], pattern: 'pull-v', level: 2, equipment: ['bar'],
     steps: ['Stange schulterbreit greifen, Füße vom Boden lösen (oder teilweise abstützen).', 'Schultern leicht nach unten ziehen, nicht passiv in die Gelenke hängen.', 'Rumpf leicht anspannen, ruhig atmen.', 'Kontrolliert lösen.'],
     mistakes: ['Herunterspringen.', 'Schaukeln.'] },
   kneelinghipflexor: { en: 'Kneeling Hip Flexor Stretch', aliases: ['hüftbeuger dehnen'], p: ['hipflexors'], s: ['quads'], pattern: 'stretch', level: 1,

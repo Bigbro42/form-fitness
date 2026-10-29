@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalOverflow, openNewApp, trackErrors } from './helpers';
+import { openHistory, expectNoHorizontalOverflow, openNewApp, trackErrors } from './helpers';
 
 test('library: search, body map, filters and exercise details', async ({ page }) => {
   const errors = trackErrors(page);
@@ -9,7 +9,8 @@ test('library: search, body map, filters and exercise details', async ({ page })
   await expect(page.locator('.lib-row').first()).toContainText('Hip Thrust');
   await page.getByLabel('Übungen durchsuchen').fill('');
 
-  await page.getByRole('button', { name: /Körperkarte/ }).click();
+  // The body map is open by default.
+  await expect(page.getByRole('button', { name: /Körperkarte/ })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Hintere Oberschenkel' }).locator('path').first().click();
   await expect(page.getByRole('button', { name: 'Hintere Oberschenkel' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText(/Übungen für Hintere Oberschenkel/)).toBeVisible();
@@ -92,7 +93,7 @@ test('custom exercises can be created, trained, found in history and deleted saf
   await page.getByRole('button', { name: 'Übung löschen' }).click();
   await expect(page.getByRole('dialog')).toContainText('1 Training');
   await page.getByRole('dialog').getByRole('button', { name: 'Löschen' }).click();
-  await page.getByRole('link', { name: 'Verlauf' }).click();
+  await openHistory(page);
   await page.locator('.row').first().click();
   await expect(page.locator('article', { hasText: 'Kettlebell Swing' }).locator('tbody tr').first()).toContainText('15');
 });

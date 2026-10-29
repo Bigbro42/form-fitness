@@ -22,6 +22,7 @@ export const EQUIPMENT_LABELS: Record<EquipmentId, string> = {
   band: 'Widerstandsband',
   dumbbell: 'Kurzhanteln',
   barbell: 'Langhantel',
+  bar: 'Klimmzugstange',
   machine: 'Geräte / Kabel',
   cardio: 'Cardio-Gerät',
 };
@@ -101,7 +102,7 @@ function fromLegacy(x: LegacyExercise): ExerciseDef {
     aliases: c?.aliases ?? [],
     primaryMuscles: c?.p ?? fallback.slice(0, 1),
     secondaryMuscles: c ? c.s ?? [] : fallback.slice(1),
-    equipment: [x.equipment as EquipmentId],
+    equipment: c?.equipment ?? [x.equipment as EquipmentId],
     kind,
     metric: LEGACY_METRIC[x.metric] ?? 'reps',
     baseTarget: x.target,

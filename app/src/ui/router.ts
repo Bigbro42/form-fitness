@@ -12,6 +12,8 @@ export type Route =
   | { name: 'library' }
   | { name: 'exerciseInfo'; id: string }
   | { name: 'customExercise'; id?: string }
+  | { name: 'progress' }
+  | { name: 'generator' }
   | { name: 'history' }
   | { name: 'session'; id: string }
   | { name: 'data' };
@@ -30,6 +32,8 @@ export function parseRoute(hash: string): Route {
   if (a === 'training' && b) return { name: 'exercise', id: b };
   if (a === 'training') return { name: 'workout' };
   if (a === 'geschafft' && b) return { name: 'summary', id: b };
+  if (a === 'fortschritt') return { name: 'progress' };
+  if (a === 'generator') return { name: 'generator' };
   if (a === 'verlauf' && b) return { name: 'session', id: b };
   if (a === 'verlauf') return { name: 'history' };
   if (a === 'daten') return { name: 'data' };
@@ -50,6 +54,8 @@ export function href(route: Route): string {
     case 'library': return '#/uebungen';
     case 'exerciseInfo': return `#/uebungen/${encodeURIComponent(route.id)}`;
     case 'customExercise': return route.id ? `#/uebungen/bearbeiten/${encodeURIComponent(route.id)}` : '#/uebungen/neu';
+    case 'progress': return '#/fortschritt';
+    case 'generator': return '#/generator';
     case 'history': return '#/verlauf';
     case 'session': return `#/verlauf/${encodeURIComponent(route.id)}`;
     case 'data': return '#/daten';

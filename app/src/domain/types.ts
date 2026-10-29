@@ -30,7 +30,7 @@ export type GoalId =
 
 export type MuscleGroup = 'abs' | 'legs' | 'glutes' | 'back' | 'shoulders' | 'chest' | 'arms';
 
-export type EquipmentId = 'body' | 'band' | 'dumbbell' | 'barbell' | 'machine' | 'cardio';
+export type EquipmentId = 'body' | 'band' | 'dumbbell' | 'barbell' | 'bar' | 'machine' | 'cardio';
 
 /** What one set is measured in. */
 export type Metric = 'reps' | 'seconds' | 'minutes';

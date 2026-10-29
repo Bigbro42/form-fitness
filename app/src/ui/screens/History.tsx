@@ -2,6 +2,8 @@ import { useState } from 'preact/hooks';
 import type { WorkoutSession } from '../../domain/types';
 import { useAppState } from '../../state/store';
 import { monthLabel, SessionRow } from '../components';
+import { Icon } from '../icons';
+import { href } from '../router';
 
 type Filter = 'completed' | 'draft' | 'all';
 
@@ -27,7 +29,8 @@ export function History() {
 
   return (
     <main class="screen">
-      <header class="page-head">
+      <a class="btn btn-ghost" href={href({ name: 'progress' })} style={{ marginLeft: 'calc(-1 * var(--space-2))' }}><Icon name="back" size={18} />Fortschritt</a>
+      <header class="page-head" style={{ marginTop: 'var(--space-3)' }}>
         <div>
           <p class="eyebrow">Verlauf</p>
           <h1 class="title">Deine Trainings</h1>

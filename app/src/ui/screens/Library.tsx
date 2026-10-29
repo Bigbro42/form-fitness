@@ -14,7 +14,13 @@ const BASE = import.meta.env.BASE_URL;
 
 /** Remembered while the app is open, so going back from an exercise keeps the search. */
 let remembered: LibraryFilter = EMPTY_FILTER;
-let rememberedMap = false;
+let rememberedMap = true;
+
+/** Opens the library pre-filtered to a muscle (e.g. from the progress body map). */
+export function presetLibraryRegion(region: LibraryFilter['region']) {
+  remembered = { ...EMPTY_FILTER, region };
+  rememberedMap = true;
+}
 
 function Thumb({ x }: { x: ExerciseDef }) {
   if (x.media) return <img class="thumb" src={BASE + x.media.frames[0]} alt="" loading="lazy" decoding="async" />;

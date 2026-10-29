@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectNoHorizontalOverflow, openNewApp, trackErrors } from './helpers';
+import { openHistory, expectNoHorizontalOverflow, openNewApp, trackErrors } from './helpers';
 
 // Thursday, 29 October 2026, 10:00 in Vienna.
 test.beforeEach(async ({ page }) => {
@@ -139,7 +139,7 @@ test('a series can be edited, ended from a date and deleted without touching his
   await page.getByRole('button', { name: 'Serie löschen' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Serie löschen' }).click();
   await expect(day(page, /^Donnerstag, 12\. November$/)).toBeVisible();
-  await page.getByRole('link', { name: 'Verlauf' }).click();
+  await openHistory(page);
   await expect(page.locator('.row')).toHaveCount(1);
   await expect(page.locator('.row')).toContainText('Kraft');
 });

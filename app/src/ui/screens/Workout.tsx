@@ -78,6 +78,16 @@ function NoWorkout() {
           <Icon name="play" size={18} />Training starten
         </button>
       </section>
+      <a class="card card-link" href={href({ name: 'generator' })} style={{ marginTop: 'var(--space-3)' }}>
+        <span class="icon-btn icon-btn-accent" aria-hidden="true"><Icon name="shuffle" size={20} /></span>
+        <span class="row-main"><b>Workout-Generator</b><small>Fokus, Ziel, Dauer und Equipment wählen – FORM. stellt ein ausgewogenes Training zusammen.</small></span>
+        <Icon name="chevron" size={18} class="chevron" />
+      </a>
+      <a class="card card-link" href={href({ name: 'calendar' })} style={{ marginTop: 'var(--space-2)' }}>
+        <span class="icon-btn" aria-hidden="true"><Icon name="calendar" size={20} /></span>
+        <span class="row-main"><b>Training planen</b><small>Einmalig oder als Wiederholung im Kalender.</small></span>
+        <Icon name="chevron" size={18} class="chevron" />
+      </a>
     </main>
   );
 }

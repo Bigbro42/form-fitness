@@ -4,6 +4,8 @@ import { href, useRoute, type Route } from './ui/router';
 import { Calendar } from './ui/screens/Calendar';
 import { CustomExercise } from './ui/screens/CustomExercise';
 import { Data } from './ui/screens/Data';
+import { Generator } from './ui/screens/Generator';
+import { Progress } from './ui/screens/Progress';
 import { ExerciseInfo } from './ui/screens/ExerciseInfo';
 import { ExerciseScreen } from './ui/screens/ExerciseScreen';
 import { History } from './ui/screens/History';
@@ -19,10 +21,10 @@ void start();
 
 const TABS: { route: Route; label: string; icon: IconName; matches: Route['name'][] }[] = [
   { route: { name: 'home' }, label: 'Start', icon: 'home', matches: ['home', 'data'] },
-  { route: { name: 'workout' }, label: 'Training', icon: 'dumbbell', matches: ['workout', 'exercise', 'summary'] },
+  { route: { name: 'workout' }, label: 'Training', icon: 'dumbbell', matches: ['workout', 'exercise', 'summary', 'generator'] },
   { route: { name: 'calendar' }, label: 'Kalender', icon: 'calendar', matches: ['calendar', 'plan'] },
   { route: { name: 'library' }, label: 'Übungen', icon: 'body', matches: ['library', 'exerciseInfo', 'customExercise'] },
-  { route: { name: 'history' }, label: 'Verlauf', icon: 'history', matches: ['history', 'session'] },
+  { route: { name: 'progress' }, label: 'Fortschritt', icon: 'chart', matches: ['progress', 'history', 'session'] },
 ];
 
 function Screen({ route }: { route: Route }) {
@@ -36,6 +38,8 @@ function Screen({ route }: { route: Route }) {
     case 'library': return <Library />;
     case 'exerciseInfo': return <ExerciseInfo id={route.id} />;
     case 'customExercise': return <CustomExercise id={route.id} />;
+    case 'progress': return <Progress />;
+    case 'generator': return <Generator />;
     case 'history': return <History />;
     case 'session': return <SessionDetail id={route.id} />;
     case 'data': return <Data />;

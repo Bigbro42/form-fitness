@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectNoHorizontalOverflow, openNewApp, trackErrors } from './helpers';
+import { openHistory, expectNoHorizontalOverflow, openNewApp, trackErrors } from './helpers';
 
 async function addExercise(page: Page, search: string) {
   await page.getByRole('button', { name: 'Übung hinzufügen' }).click();
@@ -115,7 +115,7 @@ test('completed workouts are protected; correcting keeps the date', async ({ pag
   // Discarding restores the original values.
   await page.getByRole('button', { name: 'Korrektur verwerfen' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Verwerfen' }).click();
-  await page.getByRole('link', { name: 'Verlauf' }).click();
+  await openHistory(page);
   await page.locator('.row').first().click();
   await expect(page.locator('tbody tr').first()).toContainText('12');
   await expect(page.getByRole('button', { name: 'Korrigieren' })).toBeEnabled();
@@ -137,7 +137,7 @@ test('leaving without completing keeps sets as "not completed", empty workouts d
   await page.getByRole('dialog').getByRole('button', { name: 'Beenden' }).click();
   await expect(page.locator('.stat').nth(0)).toContainText('0'); // not counted as training
   await expect(page.locator('.stat').nth(2)).toContainText('1');
-  await page.getByRole('link', { name: 'Verlauf' }).click();
+  await openHistory(page);
   await page.getByRole('button', { name: 'Offen' }).click();
   await page.locator('.row').first().click();
   await page.getByRole('button', { name: 'Fortsetzen' }).click();

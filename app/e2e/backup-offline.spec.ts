@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { expectNoHorizontalOverflow, logLegacyWorkout, openNewApp, trackErrors } from './helpers';
+import { openHistory, expectNoHorizontalOverflow, logLegacyWorkout, openNewApp, trackErrors } from './helpers';
 
 async function downloadFrom(page: Page, click: () => Promise<void>): Promise<{ name: string; text: string }> {
   const [download] = await Promise.all([page.waitForEvent('download'), click()]);
@@ -35,7 +35,7 @@ test('backup of the new app restores everything on another device', async ({ pag
   const errors = trackErrors(other);
   await openNewApp(other, '#/daten');
   await importFile(other, json.name, json.text, 'Zusammenführen');
-  await other.getByRole('link', { name: 'Verlauf' }).click();
+  await openHistory(other);
   await expect(other.locator('.row')).toHaveCount(1);
   await other.locator('.row').first().click();
   await expect(other.locator('article', { hasText: 'Kniebeugen' }).locator('tbody tr').first()).toContainText('12');

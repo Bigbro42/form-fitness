@@ -23,12 +23,14 @@ const VIEWS = { front: grouped('front'), back: grouped('back') };
  * Gender-neutral anatomical body map (front and back side by side).
  * Interactive when `onSelect` is given; otherwise a labelled muscle overview.
  */
-export function BodyMap({ primary = [], secondary = [], selected = null, onSelect, label }: {
+export function BodyMap({ primary = [], secondary = [], selected = null, onSelect, label, levels }: {
   primary?: readonly MuscleRegion[];
   secondary?: readonly MuscleRegion[];
   selected?: MuscleRegion | null;
   onSelect?: (r: MuscleRegion | null) => void;
   label: string;
+  /** Sequential heat levels 1–3 (one hue, light → strong), e.g. trained sets per region. */
+  levels?: Partial<Record<MuscleRegion, 0 | 1 | 2 | 3>>;
 }) {
   const interactive = Boolean(onSelect);
   const view = (v: View) => {
@@ -38,7 +40,8 @@ export function BodyMap({ primary = [], secondary = [], selected = null, onSelec
         <svg viewBox={atlas[v].viewBox} role={interactive ? 'group' : 'img'} aria-label={`${label}: ${v === 'front' ? 'Vorderansicht' : 'Rückansicht'}`}>
           {other.map((d, i) => <path key={i} d={d} class="bm-base" />)}
           {[...regions.entries()].map(([r, ds]) => {
-            const cls = `bm-muscle${primary.includes(r) ? ' bm-primary' : secondary.includes(r) ? ' bm-secondary' : ''}${selected === r ? ' bm-selected' : ''}`;
+            const level = levels?.[r] ?? 0;
+            const cls = `bm-muscle${primary.includes(r) ? ' bm-primary' : secondary.includes(r) ? ' bm-secondary' : ''}${level ? ` bm-l${level}` : ''}${selected === r ? ' bm-selected' : ''}`;
             const name = REGIONS[r].label;
             return interactive ? (
               <g key={r} class={cls} role="button" tabIndex={0} aria-pressed={selected === r} aria-label={name}

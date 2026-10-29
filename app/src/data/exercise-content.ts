@@ -23,6 +23,8 @@ export interface Content {
   mistakes: string[];
   breath?: string;
   photo?: string;
+  /** Overrides the legacy equipment when it was wrong (e.g. a bar is needed). */
+  equipment?: import('../domain/types').EquipmentId[];
 }
 
 export const CONTENT: Record<string, Content> = {

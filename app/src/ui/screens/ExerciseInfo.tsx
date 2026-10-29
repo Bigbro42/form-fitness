@@ -2,6 +2,8 @@ import { useState } from 'preact/hooks';
 import { EQUIPMENT_LABELS, KIND_LABELS, LEVEL_LABELS, LIBRARY_EXERCISES, METRIC_LABELS, PATTERN_LABELS } from '../../domain/catalog';
 import { formatDate } from '../../domain/dates';
 import { exerciseHistory, fmtNum, personalBests, setsSummary } from '../../domain/history';
+import { exerciseSeries, SERIES_LABEL } from '../../domain/progress';
+import { LineChart } from '../charts';
 import { range, recommend, restLabel } from '../../domain/recommendations';
 import type { ExerciseDef, GoalId } from '../../domain/types';
 import { activeSession, useAppState } from '../../state/store';
@@ -34,6 +36,7 @@ export function ExerciseInfo({ id }: { id: string }) {
   const unit = METRIC_LABELS[x.metric];
   const history = exerciseHistory(state.data.sessions, x.id);
   const pb = personalBests(history, x.metric);
+  const series = exerciseSeries(state.data.sessions, x.id);
   const running = activeSession(state);
   const alts = alternatives(x, [...state.data.customExercises, ...LIBRARY_EXERCISES]);
 
@@ -102,6 +105,14 @@ export function ExerciseInfo({ id }: { id: string }) {
           <h2 class="h3" id="mine">Dein Verlauf</h2>
           {history.length ? (
             <>
+              <p class="muted small" style={{ margin: '2px 0 var(--space-3)' }}>{SERIES_LABEL[series.kind]} pro Training</p>
+              <LineChart
+                title={`${x.name}: ${SERIES_LABEL[series.kind]} pro Training`}
+                valueLabel={SERIES_LABEL[series.kind]}
+                unit={series.kind === 'heaviest' ? 'kg' : series.kind === 'bestReps' ? 'Wiederholungen' : series.kind === 'bestTime' ? 'Sekunden' : 'Minuten'}
+                summary={`${series.points.length} Trainings`}
+                data={series.points.map((p) => ({ key: p.sessionId, label: formatDate(p.date, { day: 'numeric', month: 'numeric' }), value: p.value, detail: `${formatDate(p.date, { day: 'numeric', month: 'short', year: 'numeric' })}: ${p.detail}` }))}
+              />
               <dl class="kv" style={{ marginTop: 'var(--space-3)' }}>
                 {pb.heaviest && <><dt>Schwerster Satz</dt><dd>{fmtNum(pb.heaviest.weightKg)} kg × {fmtNum(pb.heaviest.value)}</dd></>}
                 {pb.bestValue && <><dt>{x.metric === 'reps' ? 'Meiste Wiederholungen' : 'Längste Zeit'}</dt><dd>{fmtNum(pb.bestValue.value)} {unit.short}</dd></>}

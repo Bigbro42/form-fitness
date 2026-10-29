@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalOverflow, logLegacyWorkout, openNewApp, readLegacy, trackErrors } from './helpers';
+import { openHistory, expectNoHorizontalOverflow, logLegacyWorkout, openNewApp, readLegacy, trackErrors } from './helpers';
 
 test('new user: empty app, no calendar entries, no errors', async ({ page }) => {
   const errors = trackErrors(page);
@@ -8,7 +8,7 @@ test('new user: empty app, no calendar entries, no errors', async ({ page }) => 
   await expect(page.locator('.stat').first()).toContainText('0');
   await page.getByRole('link', { name: 'Daten' }).click();
   await expect(page.locator('.kv').first()).toContainText('Kalendertermine0');
-  await page.getByRole('link', { name: 'Verlauf' }).click();
+  await openHistory(page);
   await expect(page.getByText('Noch keine Trainings')).toBeVisible();
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
   expect(errors).toEqual([]);

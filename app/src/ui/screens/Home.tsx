@@ -81,6 +81,7 @@ export function Home() {
             <button class="btn btn-primary btn-block btn-lg" style={{ marginTop: 'var(--space-4)' }} onClick={() => startWorkout(state)}>
               <Icon name="play" size={18} />Training starten
             </button>
+            <a class="btn btn-secondary btn-block" style={{ marginTop: 'var(--space-2)' }} href={href({ name: 'generator' })}><Icon name="shuffle" size={18} />Workout generieren</a>
           </section>
         )}
       </div>

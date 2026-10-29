@@ -40,9 +40,12 @@ export function getDb(): Db {
 
 export function useAppState(): AppState {
   const [, force] = useState(0);
+  const rendered = state;
   useEffect(() => {
     const l = () => force((n) => n + 1);
     listeners.add(l);
+    // The state may have changed between render and subscription (e.g. a fast start from cache).
+    if (rendered !== state) l();
     return () => void listeners.delete(l);
   }, []);
   return state;

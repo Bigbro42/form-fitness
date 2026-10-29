@@ -29,9 +29,6 @@ const coaching = {
  bearhold:{steps:['Beginne im Vierfüßlerstand mit Händen unter den Schultern und Knien unter den Hüften.','Spanne den Bauch an und hebe die Knie wenige Zentimeter vom Boden ab.','Halte die Position ohne zu wackeln und setze die Knie kontrolliert wieder ab.'],avoid:'Rundrücken erzwingen oder die Luft anhalten.',breath:'Ruhig weiteratmen.',tempo:'Kontrollierte Haltezeit'}
 };
 const escapeHtml=(x)=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const exactPhotoIds=new Set(['squat','bridge','deadbug','pushup','sideplank','plank','superman','singlebridge','split','diamond']);
-// The previous randomizer deliberately suppressed some licensed exact-match media.
-// Add close-grip elevated push-up, which has a matching local photo pair.
 function exerciseHistoryBefore(id,randomSession){
  return loggedHistory(id).filter(h=>!randomSession||h.randomId!==randomSession.id);
 }
@@ -64,7 +61,7 @@ function enhanceDetail(){
    const copy=document.querySelector('[data-copy-last]');const guide=document.querySelector('.v24-prescription');if(copy&&guide)guide.append(copy);
   }
   if(state.detailTab==='guide'){
-   const guide=document.querySelector('.detail-guide');if(guide){guide.insertAdjacentHTML('beforebegin',guideSection(rec));guide.classList.add('v24-original-guide')}
+   const guide=document.querySelector('.detail-guide');if(guide){guide.insertAdjacentHTML('beforebegin',guideSection(rec));guide.classList.add('v24-original-guide');guide.innerHTML='<a class="v24-more-link" href="'+escapeHtml(rec.ex.link||'#')+'" target="_blank" rel="noopener noreferrer">Weitere externe Übungsanleitung ↗</a>'}
   }
  } else if(state.view==='randomizer'&&state.randomStage==='detail'){
   const rs=activeRandom(),exercise=rs?.exercises?.[state.randomDetailIndex||0];if(!exercise)return;
@@ -75,16 +72,7 @@ function enhanceDetail(){
   const prescription=document.querySelector('.v24-prescription');
   if(prescription&&!rs.completed&&rec.last?.lines?.length){prescription.insertAdjacentHTML('beforeend','<button class="v24-paste" type="button" data-v24-random-last>↙ Vorherige Satzwerte übernehmen</button>')}
  }
- // A matching real photo was previously blocked for the close-grip incline push-up.
- if(state.view==='randomizer'){
-  const imgs=[...document.querySelectorAll('.v23-thumb.is-missing, .v23-demo-frame.is-missing')];
-  imgs.forEach(el=>{
-   const btn=el.closest('[data-rdetail],[data-rchoose]');const idx=btn?.dataset.rdetail;
-   const id=idx!==undefined?activeRandom()?.exercises?.[Number(idx)]?.id:null;
-   if(id!=='diamond'||!exactPhotoIds.has(id)||!photoSrc(id))return;
-   const img=document.createElement('img');img.src=photoSrc(id);img.loading='lazy';img.alt='Enge erhöhte Liegestütze';img.onerror=()=>{img.remove();el.classList.add('is-missing')};el.prepend(img);el.classList.remove('is-missing');
-  });
- }
+
 }
 const oldRender=render;
 render=function(){oldRender();enhanceDetail()};

@@ -1,4 +1,5 @@
-/* FORM. V20 | Blank-slate calendar, opt-in recurrence, reliable local photo selection.
+/* FORM. V22 | Instant workout flow and honest calendar history.
+ * Based on V21 blank-slate calendar, opt-in recurrence, reliable local photo selection.
  * Existing workout records/plans and randomizer history remain in their existing keys.
  */
 (()=>{
@@ -43,9 +44,9 @@ function eventsOn(date){
  return events;
 }
 function randomCompletedOn(date){return randomSessions.filter(x=>x.date===date&&x.completed)}
-function historicalOn(date){const e=records[date];return Boolean(e?.complete||Array.isArray(plans[date])&&plans[date].length>0||randomCompletedOn(date).length)}
+function historicalOn(date){const e=records[date];const plan=plans[date];const hasEnteredSets=Array.isArray(plan)&&plan.some(x=>(x.sets||[]).some(v=>isVal(v)));return Boolean(e?.complete||hasEnteredSets||randomCompletedOn(date).length)}
 function currentEvent(date){return eventsOn(date)[0]||null}
-const legacyType=(i)=>{const d=iso(i),e=records[d];if(Array.isArray(e?.completedExercises))return 'A';if(Array.isArray(plans[d]))return dt(i).getDay()===4?'B':'A';if(e?.complete)return 'K';return ''};
+const legacyType=(i)=>{const d=iso(i),e=records[d];if(Array.isArray(e?.completedExercises))return 'A';const plan=plans[d];if(Array.isArray(plan)&&plan.some(x=>(x.sets||[]).some(v=>isVal(v))))return dt(i).getDay()===4?'B':'A';if(e?.complete)return 'K';return ''};
 dayType=function(i){if(i<0||i>=total)return '';const ev=currentEvent(iso(i));return ev?ev.type==='strength'?'A':'K':legacyType(i)};
 list=function(i){if(!within(iso(i)))return [];const d=iso(i);if(Array.isArray(plans[d]))return plans[d];
  const ev=currentEvent(d);if(ev?.type==='strength'){const preset=ev.preset||'';return preset&&Array.isArray(defaults[preset])?defaults[preset].map(cloneItem):[]}
@@ -76,8 +77,8 @@ calendar=function(){
  return `<div class="v20-page"><div class="v20-topline"><div><h1>Kalender</h1><p>Nur deine geplanten und tatsächlich absolvierten Trainings</p></div><button data-v20-new class="v20-top-add" aria-label="Workout planen">＋</button></div>
  <section class="v20-calendar"><div class="v20-month-head"><button type="button" data-v20-prev aria-label="Vorheriger Monat">‹</button><h2>${safeText(first.toLocaleDateString('de-AT',{month:'long',year:'numeric'}))}</h2><button type="button" data-v20-next aria-label="Nächster Monat">›</button></div>
  <div class="v20-month-grid">${['Mo','Di','Mi','Do','Fr','Sa','So'].map(x=>`<span class="v20-dow">${x}</span>`).join('')}${Array(offset).fill('<span></span>').join('')}${days.map(x=>`<button type="button" data-v20-choose="${x.date}" class="v20-day ${x.done?'finished':''} ${x.planned?'planned':''} ${x.date===selected?'chosen':''}" ${!x.isAvailable?'disabled':''} aria-label="${x.date} ${x.done?'Absolviert':x.planned?'Geplant':''}"><span>${x.number}</span>${x.done?'<i class="v20-completed"></i>':x.planned?'<i></i>':x.historical?'<i class="v20-history-dot"></i>':''}</button>`).join('')}</div>
- <div class="v20-key"><span><i class="v20-planned-dot"></i>Geplant</span><span><i class="v20-done-dot"></i>Absolviert</span></div></section>
- <section class="v20-selected"><small>AUSGEWÄHLTER TAG</small><h2>${safeText(selDate)}</h2>${ev?`<div class="v20-event-card"><strong>${safeText(eventTitle(ev))}</strong><span>${ev.time?safeText(ev.time)+' Uhr · ':''}${ev.source==='series'?'Serientermin':'Einmalig'}${done?' · Abgeschlossen':''}</span></div><div class="v20-actions"><button data-v20-open-training class="v20-primary">${done?'Training ansehen':'Training öffnen'}</button><button data-v20-edit class="v20-soft">Bearbeiten</button></div><div class="v20-quiet-actions"><button data-v20-skip>${ev.source==='series'?'Nur diesen Termin auslassen':'Termin entfernen'}</button>${ev.source==='series'?'<button data-v20-delete-series>Ganze Serie löschen</button>':''}</div>`:historicalOn(selected)?`<div class="v20-event-card"><strong>${randomForDay.length&&!done?'Zufallstraining abgeschlossen':done?'Abgeschlossenes Training':'Begonnenes Training'}</strong><span>Aus deiner bisherigen Trainingshistorie</span></div><button ${randomForDay.length&&!done?'data-v20-open-random':'data-v20-open-training'} class="v20-primary">Eintrag ansehen</button>`:`<div class="v20-empty"><strong>Hier ist noch nichts geplant.</strong><p>Du entscheidest selbst, wann du trainierst. Kein automatischer Wochenplan.</p><button data-v20-new class="v20-primary">＋ Workout planen</button></div>`}</section>
+ <div class="v20-key"><span><i class="v20-planned-dot"></i>Geplant</span><span><i class="v20-done-dot"></i>Absolviert</span><span class="v22-legend-note">Einträge ohne Sätze gelten nicht als Training.</span></div></section>
+ <section class="v20-selected"><small>AUSGEWÄHLTER TAG</small><h2>${safeText(selDate)}</h2>${ev?`<div class="v20-event-card"><strong>${safeText(eventTitle(ev))}</strong><span>${ev.time?safeText(ev.time)+' Uhr · ':''}${ev.source==='series'?'Serientermin':'Einmalig'}${done?' · Abgeschlossen':''}</span></div><div class="v20-actions"><button data-v20-open-training class="v20-primary">${done?'Training ansehen':'Training öffnen'}</button><button data-v20-edit class="v20-soft">Bearbeiten</button></div><div class="v20-quiet-actions"><button data-v20-skip>${ev.source==='series'?'Nur diesen Termin auslassen':'Termin entfernen'}</button>${ev.source==='series'?'<button data-v20-delete-series>Ganze Serie löschen</button>':''}</div>`:historicalOn(selected)?`<div class="v20-event-card"><strong>${randomForDay.length&&!done?'Zufallstraining abgeschlossen':done?'Abgeschlossenes Training':'Begonnenes Training'}</strong><span>Aus deiner bisherigen Trainingshistorie</span></div><button ${randomForDay.length&&!done?'data-v20-open-random':'data-v20-open-training'} class="v20-primary">Eintrag ansehen</button>`:`<div class="v20-empty"><strong>Hier ist noch nichts geplant.</strong><p>Du entscheidest selbst, wann du trainierst. Kein automatischer Wochenplan.</p><div class="v22-empty-actions"><button data-v22-quick-start="selected" class="v20-primary">${selected<today?'Training nachtragen':selected>today?'Training vorbereiten':'▶ Jetzt trainieren'}</button><button data-v20-new class="v20-soft">＋ Workout planen</button></div></div>`}</section>
  ${state.v20Form?calendarForm():''}
  <section class="v20-agenda"><div class="v20-section-label"><h2>Dieser Monat</h2><span>${dateEntries.length} Tage</span></div>${dateEntries.length?dateEntries.map(x=>agendaLine(x.date,currentEvent(x.date))).join(''):'<p class="v20-no-events">Noch keine Einträge in diesem Monat.</p>'}</section></div>`;
 };
@@ -87,13 +88,13 @@ dashboard=function(){
  const upcoming=[];for(let k=0;k<42&&upcoming.length<4;k++){const dt0=dateOf(d);dt0.setDate(dt0.getDate()+k);const date=localDay(dt0),event=currentEvent(date);if(event)upcoming.push({date,event})}
  const completed=Object.entries(records).filter(([x,v])=>v?.complete).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,2);
  return `<div class="v20-page v20-home"><div class="v20-topline"><div><small>FORM. / DEIN TRAINING</small><h1>Dein Training. Deine Entscheidung.</h1><p>${safeText(dateOf(d).toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'}))}</p></div><button data-v20-to-calendar class="v20-top-add" aria-label="Kalender öffnen">▦</button></div>
- <section class="v20-home-hero"><small>HEUTE</small><h2>${ev?safeText(eventTitle(ev)):isLogged?'Dein Training':'Ein freier Tag.'}</h2><p>${ev?ev.source==='series'?'Dein wiederkehrender Termin steht bereit.':'Dein Workout ist geplant.':isLogged?'Du hast hier bereits etwas dokumentiert.':'Kein Training vorgeschrieben. Du planst nur, was du wirklich machen möchtest.'}</p><div class="v20-hero-actions">${ev||isLogged?`<button class="v20-primary" data-v20-home-start>${done?'Training ansehen':'Training starten'}</button>`:'<button class="v20-primary" data-v20-home-new>＋ Workout planen</button>'}<button class="v20-soft" data-v20-to-calendar>Kalender</button></div></section>
+ <section class="v20-home-hero"><small>HEUTE</small><h2>${ev?safeText(eventTitle(ev)):isLogged?'Dein Training':'Ein freier Tag.'}</h2><p>${ev?ev.source==='series'?'Dein wiederkehrender Termin steht bereit.':'Dein Workout ist geplant.':isLogged?'Du hast hier bereits etwas dokumentiert.':'Kein Training vorgeschrieben. Du planst nur, was du wirklich machen möchtest.'}</p><div class="v20-hero-actions">${ev||isLogged?`<button class="v20-primary" data-v20-home-start>${done?'Training ansehen':'Training starten'}</button>`:'<button class="v20-primary" data-v22-quick-start="today">▶ Jetzt trainieren</button><button class="v20-soft" data-v20-home-new>＋ Planen</button>'}<button class="v20-soft" data-v20-to-calendar>Kalender</button></div></section>
  <div class="v20-section-label"><h2>Als Nächstes</h2><button data-v20-to-calendar>Alle Termine ›</button></div><section class="v20-upcoming">${upcoming.length?upcoming.map(x=>agendaLine(x.date,x.event)).join(''):'<div class="v20-zero">Noch keine Trainingstermine. Lege einen einmaligen Termin oder eine Wiederholung an.</div>'}</section>
  <div class="v20-section-label"><h2>Zuletzt abgeschlossen</h2></div><section>${completed.length?completed.map(([date,e])=>agendaLine(date,currentEvent(date))).join(''):'<p class="v20-no-events">Sobald du eine Einheit abschließt, erscheint sie hier.</p>'}</section></div>`;
 };
 const oldTraining=training;
 training=function(){const d=iso(state.index),event=currentEvent(d),type=dayType(state.index);
- if(!type)return `<section class="v20-page"><div class="v20-topline"><div><h1>Freier Tag</h1><p>${safeText(dateOf(d).toLocaleDateString('de-AT',{dateStyle:'full'}))}</p></div></div><div class="v20-empty"><h2>Noch kein Workout geplant</h2><p>Du kannst einen Termin einmalig oder als Serie anlegen.</p><button class="v20-primary" data-v20-plan-from-training>Workout planen</button></div><button class="v20-soft" data-v20-to-calendar>Zum Kalender</button></section>`;
+ if(!type)return `<section class="v20-page"><div class="v20-topline"><div><h1>Freier Tag</h1><p>${safeText(dateOf(d).toLocaleDateString('de-AT',{dateStyle:'full'}))}</p></div></div><div class="v20-empty"><h2>Noch kein Workout geplant</h2><p>Du kannst einen Termin einmalig oder als Serie anlegen.</p><div class="v22-empty-actions"><button class="v20-primary" data-v22-quick-start="training">▶ Jetzt trainieren</button><button class="v20-soft" data-v20-plan-from-training>Workout planen</button></div></div><button class="v20-soft" data-v20-to-calendar>Zum Kalender</button></section>`;
  let html=oldTraining();
  html=html.replace(/<div class="seg-tabs training-seg">[\s\S]*?<\/div>/,`<div class="v20-training-label"><span>${safeText(eventTitle(event)|| (type==='K'?'Sport':'Krafttraining'))}</span><button data-v20-to-calendar>Kalender ›</button></div>`)
  .replace(/<details class="plan-fold">[\s\S]*?<\/details>/,'')
@@ -158,6 +159,22 @@ function stopEvent(scope){const d=state.v20Day,ev=currentEvent(d);if(!ev)return;
  if(ev.source==='single'){delete schedule.oneOff[d]}else if(scope==='series'){schedule.series=schedule.series.filter(x=>x.id!==ev.id);for(const key of Object.keys(schedule.skips))if(key.startsWith(ev.id+'|'))delete schedule.skips[key]}else{schedule.skips[ev.id+'|'+d]=true}
  saveSchedule();setView('calendar');
 }
+function quickStart(date){
+ if(!within(date)){alert('Dieser Tag liegt außerhalb des verfügbaren Kalenders.');return}
+ const event=eventsOn(date)[0];
+ if(event?.type==='sport'){alert('An diesem Tag ist ein Sporttermin geplant. Bitte bearbeite zuerst den Termin.');return}
+ const hasEvent=Boolean(event?.type==='strength');
+ if(!hasEvent){
+  schedule.oneOff[date]={id:'quick-'+Date.now(),date,name:'Spontanes Training',type:'strength',preset:'',time:''};
+  if(!saveSchedule())return;
+ }
+ state.index=idx(date);
+ state.v20Day=date;
+ state.v20Form=false;
+ state.detailIndex=0;
+ state.detailTab='training';
+ setView('training');window.scrollTo(0,0);
+}
 function addSelectedExercise(){const id=state.v20PhotoId;if(!id||!catalog[id])return;
  if(state.scanReturn==='randomizer'&&activeRandom()){modifyRandom(x=>x.exercises.push(cloneItem(id)));state.randomStage='plan';leavePhoto();setView('randomizer');return}
  const date=iso(state.index);if(dayType(state.index)===''){schedule.oneOff[date]={id:'ad-hoc-'+Date.now(),date,name:'Mein Training',type:'strength',preset:'',time:''};saveSchedule()}
@@ -165,7 +182,8 @@ function addSelectedExercise(){const id=state.v20PhotoId;if(!id||!catalog[id])re
 }
 // Event delegation remains stable while render() reconstructs the view.
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-v20-choose],[data-v20-prev],[data-v20-next],[data-v20-new],[data-v20-cancel],[data-v20-open-training],[data-v20-open-random],[data-v20-edit],[data-v20-skip],[data-v20-delete-series],[data-v20-plan-from-training],[data-v20-to-calendar],[data-v20-home-new],[data-v20-home-start],[data-v20-photo-back],[data-v20-pick],[data-v20-photo-confirm],[data-v20-open-photo],[data-v20-export],[data-v20-csv],[data-v19-backup]');if(!b)return;
+ const b=e.target.closest('[data-v22-quick-start],[data-v20-choose],[data-v20-prev],[data-v20-next],[data-v20-new],[data-v20-cancel],[data-v20-open-training],[data-v20-open-random],[data-v20-edit],[data-v20-skip],[data-v20-delete-series],[data-v20-plan-from-training],[data-v20-to-calendar],[data-v20-home-new],[data-v20-home-start],[data-v20-photo-back],[data-v20-pick],[data-v20-photo-confirm],[data-v20-open-photo],[data-v20-export],[data-v20-csv],[data-v19-backup]');if(!b)return;
+ if(b.hasAttribute('data-v22-quick-start')){const mode=b.dataset.v22QuickStart;quickStart(mode==='today'?today:mode==='training'?iso(state.index):state.v20Day);return}
  if(b.hasAttribute('data-v20-choose')){openDate(b.dataset.v20Choose);return}
  if(b.hasAttribute('data-v20-prev')||b.hasAttribute('data-v20-next')){state.v20Month=Math.min(35,Math.max(-1,(state.v20Month||0)+(b.hasAttribute('data-v20-next')?1:-1)));render();return}
  if(b.hasAttribute('data-v20-new')||b.hasAttribute('data-v20-plan-from-training')||b.hasAttribute('data-v20-home-new')){if(b.hasAttribute('data-v20-home-new')){state.v20Day=today;state.index=idx(today)}openForm();return}
@@ -199,6 +217,22 @@ render=function(){prevRender();if(state.view==='training'){
  const b=document.querySelector('[data-v19-rscan]');if(b){b.onclick=null;b.removeAttribute('data-v19-rscan');b.setAttribute('data-v20-open-photo','randomizer');b.textContent='◎ Foto auswählen und Übung zuordnen'}
  }
 };
+// Completed workouts are read-only until deliberately reopened, so snapshots and displayed sets agree.
+const v22Render=render;
+render=function(){
+ v22Render();
+ if(!['training','detail'].includes(state.view)||!entry(state.index).complete||!['A','B'].includes(dayType(state.index)))return;
+ const nodes=document.querySelectorAll('[data-add],[data-open-scan],[data-v20-open-photo],[data-set],[data-weight],[data-checkset],[data-addset],[data-delset],[data-variant],[data-remove],[data-move],[data-detail-save]');
+ nodes.forEach(el=>{el.disabled=true;el.setAttribute('aria-disabled','true');el.title='Zum Bearbeiten Training wieder öffnen'});
+ if(state.view==='detail'&&state.detailIndex>=list(state.index).length-1){const next=document.querySelector('[data-detail-next]');if(next){next.disabled=true;next.textContent='Bereits abgeschlossen'}}
+ if(document.querySelector('.v22-archive-banner'))return;
+ const banner=document.createElement('section');banner.className='v22-archive-banner';banner.setAttribute('role','status');
+ banner.innerHTML='<div><b>✓ Training abgeschlossen</b><p>Deine Werte sind im Verlauf gespeichert. Zum Ändern der Sätze öffne die Einheit wieder.</p></div><button type="button">Bearbeiten</button>';
+ const anchor=document.querySelector(state.view==='detail'?'.detail-section-title':'.session-summary');
+ if(anchor)anchor.before(banner);else document.querySelector('#root')?.prepend(banner);
+ banner.querySelector('button').onclick=()=>{if(!confirm('Training wieder öffnen? Bis zum nächsten Abschluss wird der gespeicherte Abschluss zurückgesetzt.'))return;edit(state.index,{complete:false,completedExercises:null,completedAt:null});render()};
+};
+
 if(within(today))state.index=idx(today);
 render();
 })();

@@ -13,6 +13,20 @@ const paths = {
   upload: 'M12 20V9m0 0-4.5 4.5M12 9l4.5 4.5M5 4h14',
   shield: 'M12 3 5 6v5c0 4.6 3 8.5 7 10 4-1.5 7-5.4 7-10V6z',
   external: 'M14 5h5v5m0-5-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4',
+  plus: 'M12 5v14M5 12h14',
+  minus: 'M5 12h14',
+  search: 'm20 20-4.2-4.2M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z',
+  dumbbell: 'M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11',
+  play: 'M8 5.5v13l10.5-6.5z',
+  up: 'm6 15 6-6 6 6',
+  down: 'm6 9 6 6 6-6',
+  swap: 'M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  copy: 'M9 9h10v10H9zM5 15V5h10',
+  flag: 'M5 21V4M5 4h11l-2 4 2 4H5',
+  close: 'm6 6 12 12M18 6 6 18',
+  trophy: 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',
 } as const;
 
 export type IconName = keyof typeof paths;

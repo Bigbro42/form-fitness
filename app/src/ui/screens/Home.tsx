@@ -1,17 +1,22 @@
 import { formatDate, today } from '../../domain/dates';
+import { GOALS } from '../../domain/goals';
 import { overview } from '../../domain/summary';
-import { dismissError, useAppState } from '../../state/store';
+import { activeSession, dismissError, useAppState } from '../../state/store';
+import { startWorkout } from '../../state/workout';
 import { Notice, SessionRow } from '../components';
 import { Icon } from '../icons';
 import { href } from '../router';
+import { ElapsedTime } from '../workout-parts';
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 export function Home() {
-  const { data, migration, error, persist } = useAppState();
+  const state = useAppState();
+  const { data, migration, error, persist } = state;
   const o = overview(data.sessions);
   const recent = data.sessions.filter((s) => s.status === 'completed').slice(0, 3);
   const imported = migration?.status === 'imported' ? migration.state : null;
+  const active = activeSession(state);
 
   return (
     <main class="screen">
@@ -43,16 +48,26 @@ export function Home() {
           </Notice>
         )}
 
-        <section class="card-hero" aria-labelledby="next-step">
-          <p class="eyebrow">Vorschau der neuen App</p>
-          <h2 class="h2" id="next-step">Training erfassen folgt im nächsten Schritt</h2>
-          <p class="muted">
-            Diese Version übernimmt und sichert deine Daten. Trainiere bis dahin weiter in der bisherigen App – neue Einträge erscheinen hier automatisch.
-          </p>
-          <div class="btn-row" style={{ marginTop: 'var(--space-4)' }}>
-            <a class="btn btn-primary" href="../">Bisherige App öffnen <Icon name="external" size={18} /></a>
-          </div>
-        </section>
+        {active ? (
+          <a class="card-hero hero-link" href={href({ name: 'workout' })}>
+            <p class="eyebrow"><span class="live-dot" aria-hidden="true" /> {active.reopened ? 'Korrektur offen' : 'Training läuft'}</p>
+            <h2 class="h2">{active.title}</h2>
+            <p class="muted">
+              {active.exercises.length} {active.exercises.length === 1 ? 'Übung' : 'Übungen'}
+              {!active.reopened && <> · <ElapsedTime since={active.startedAt} /></>}
+              {active.goal && ` · ${GOALS[active.goal].short}`}
+            </p>
+            <span class="btn btn-primary btn-block" style={{ marginTop: 'var(--space-4)' }}>Fortsetzen<Icon name="chevron" size={18} /></span>
+          </a>
+        ) : (
+          <section class="card-hero" aria-labelledby="start">
+            <h2 class="h2" id="start">Heute trainieren?</h2>
+            <p class="muted">Kein Plan vorgegeben – starte spontan und füge die Übungen hinzu, auf die du Lust hast.</p>
+            <button class="btn btn-primary btn-block btn-lg" style={{ marginTop: 'var(--space-4)' }} onClick={() => startWorkout(state)}>
+              <Icon name="play" size={18} />Training starten
+            </button>
+          </section>
+        )}
       </div>
 
       <section class="section" aria-labelledby="overview">

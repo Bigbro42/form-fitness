@@ -115,6 +115,8 @@ export interface WorkoutSession {
   /** Randomizer settings the session was generated with. */
   generator?: { focus: string; durationMin: number | null };
   plannedRef?: { planId: string; occurrence: IsoDate };
+  /** Set while a completed workout is being corrected; holds the state before the correction. */
+  reopened?: { original: Omit<WorkoutSession, 'reopened'> };
   legacy?: LegacyOrigin;
   /** Incremented on every change made in the new app; 0 = untouched import. */
   rev: number;

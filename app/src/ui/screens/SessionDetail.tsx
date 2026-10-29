@@ -1,8 +1,10 @@
 import { METRIC_LABELS } from '../../domain/catalog';
 import { formatDate } from '../../domain/dates';
 import type { SessionExercise, WorkoutSession } from '../../domain/types';
-import { useAppState } from '../../state/store';
-import { StatusChip } from '../components';
+import { useState } from 'preact/hooks';
+import { activeSession, useAppState } from '../../state/store';
+import { reopenSession } from '../../state/workout';
+import { Notice, Sheet, StatusChip } from '../components';
 import { Icon } from '../icons';
 import { href } from '../router';
 
@@ -49,6 +51,32 @@ function ExerciseCard({ x }: { x: SessionExercise }) {
   );
 }
 
+function SessionActions({ s }: { s: WorkoutSession }) {
+  const state = useAppState();
+  const [confirm, setConfirm] = useState(false);
+  const running = activeSession(state);
+  if (s.status === 'active') return <a class="btn btn-primary btn-block" href={href({ name: 'workout' })}>Zum laufenden Training</a>;
+  const blocked = running !== null;
+  const label = s.status === 'completed' ? 'Korrigieren' : 'Fortsetzen';
+  return (
+    <>
+      {blocked && <Notice tone="info"><p>Beende zuerst das laufende Training „{running!.title}“, um dieses zu {s.status === 'completed' ? 'korrigieren' : 'fortsetzen'}.</p></Notice>}
+      <button class="btn btn-secondary btn-block" disabled={blocked} onClick={() => (s.status === 'completed' ? setConfirm(true) : reopenSession(s))}>
+        <Icon name={s.status === 'completed' ? 'edit' : 'play'} size={18} />{label}
+      </button>
+      {confirm && (
+        <Sheet title="Training korrigieren?" onClose={() => setConfirm(false)}>
+          <p>Abgeschlossene Trainings sind geschützt. Zum Korrigieren wird es wieder geöffnet. Datum und Abschlusszeit bleiben erhalten; du kannst die Korrektur jederzeit verwerfen.</p>
+          <div class="stack">
+            <button class="btn btn-primary btn-block" onClick={() => reopenSession(s)}>Zum Korrigieren öffnen</button>
+            <button class="btn btn-secondary btn-block" onClick={() => setConfirm(false)}>Abbrechen</button>
+          </div>
+        </Sheet>
+      )}
+    </>
+  );
+}
+
 export function SessionDetail({ id }: { id: string }) {
   const { data } = useAppState();
   const s = data.sessions.find((x) => x.id === id);
@@ -78,14 +106,15 @@ export function SessionDetail({ id }: { id: string }) {
         </div>
       </header>
 
-      {(s.durationMin !== null || s.energy || s.steps !== null || s.note) && (
+      {(s.durationMin !== null || s.rpe !== null || s.energy || s.steps !== null || s.note) && (
         <section class="card" aria-label="Notizen">
           <dl class="kv">
             {s.durationMin !== null && <><dt>Dauer</dt><dd>{fmt(s.durationMin, ' Min.')}</dd></>}
+            {s.rpe !== null && <><dt>Belastung</dt><dd>{s.rpe} / 10</dd></>}
             {s.energy && <><dt>Energie</dt><dd>{s.energy}</dd></>}
             {s.steps !== null && <><dt>Schritte</dt><dd>{fmt(s.steps)}</dd></>}
           </dl>
-          {s.note && <p style={{ margin: s.durationMin !== null || s.energy || s.steps !== null ? 'var(--space-3) 0 0' : 0 }}>{s.note}</p>}
+          {s.note && <p style={{ margin: s.durationMin !== null || s.rpe !== null || s.energy || s.steps !== null ? 'var(--space-3) 0 0' : 0 }}>{s.note}</p>}
         </section>
       )}
 
@@ -96,6 +125,8 @@ export function SessionDetail({ id }: { id: string }) {
           <div class="empty"><p class="muted small">Für diese Einheit wurden keine Übungen erfasst.</p></div>
         )}
       </section>
+
+      <div class="stack" style={{ marginTop: 'var(--space-5)' }}><SessionActions s={s} /></div>
 
       {s.legacy && (
         <p class="muted small" style={{ marginTop: 'var(--space-5)' }}>

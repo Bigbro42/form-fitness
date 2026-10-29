@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getKv, listSnapshots, openFormDb, readUserData, type Db, type LegacyImportState, type Snapshot } from '../db/db';
-import { DEFAULT_SETTINGS, type UserData } from '../domain/types';
+import { DEFAULT_SETTINGS, type Settings, type UserData, type WorkoutSession } from '../domain/types';
 import { runLegacyMigration, type MigrationResult } from '../legacy/migrate';
 
 export type PersistState = 'persisted' | 'not-persisted' | 'unsupported';
@@ -14,6 +14,8 @@ export interface AppState {
   migration: MigrationResult | null;
   snapshots: Snapshot[];
   persist: PersistState;
+  /** Running rest timer, if any. */
+  rest: { endsAt: number; total: number } | null;
 }
 
 let db: Db | null = null;
@@ -25,6 +27,7 @@ let state: AppState = {
   migration: null,
   snapshots: [],
   persist: 'unsupported',
+  rest: null,
 };
 const listeners = new Set<() => void>();
 
@@ -104,4 +107,66 @@ export async function requestPersist(): Promise<void> {
 
 export function dismissError() {
   set({ error: null });
+}
+
+function sortSessions(list: WorkoutSession[]): WorkoutSession[] {
+  return list.sort((a, b) => b.date.localeCompare(a.date) || (b.completedAt ?? b.updatedAt).localeCompare(a.completedAt ?? a.updatedAt));
+}
+
+let writes: Promise<unknown> = Promise.resolve();
+
+/** Serialises writes so a slower earlier write can never overwrite a newer one. */
+function enqueue(task: () => Promise<unknown>): Promise<void> {
+  const next = writes.then(task);
+  writes = next.catch(() => undefined);
+  return next.then(
+    () => undefined,
+    (e) => {
+      console.error(e);
+      set({ error: `Speichern fehlgeschlagen: ${(e as Error).message}. Bitte sichere ein Backup unter „Daten“.` });
+    },
+  );
+}
+
+/** Autosave: updates the screen immediately and writes to IndexedDB in the background. */
+export function saveSession(session: WorkoutSession): Promise<void> {
+  const others = state.data.sessions.filter((s) => s.id !== session.id);
+  set({ data: { ...state.data, sessions: sortSessions([...others, session]) } });
+  if (state.persist === 'not-persisted') void requestPersist();
+  return enqueue(() => getDb().put('sessions', session));
+}
+
+export function deleteSession(id: string): Promise<void> {
+  set({ data: { ...state.data, sessions: state.data.sessions.filter((s) => s.id !== id) } });
+  return enqueue(() => getDb().delete('sessions', id));
+}
+
+export function saveSettings(patch: Partial<Settings>): Promise<void> {
+  const settings = { ...state.data.settings, ...patch, updatedAt: new Date().toISOString() };
+  set({ data: { ...state.data, settings } });
+  return enqueue(() => getDb().put('kv', settings, 'settings'));
+}
+
+/** Resolves once all pending writes are stored (used before showing "saved" states and in tests). */
+export function flushWrites(): Promise<unknown> {
+  return writes;
+}
+
+export function activeSession(s: AppState = state): WorkoutSession | null {
+  return s.data.sessions.find((x) => x.status === 'active') ?? null;
+}
+
+export function startRest(seconds: number) {
+  set({ rest: seconds > 0 ? { endsAt: Date.now() + seconds * 1000, total: seconds } : null });
+}
+
+export function adjustRest(deltaSeconds: number) {
+  const r = state.rest;
+  if (!r) return;
+  const endsAt = Math.max(Date.now(), r.endsAt + deltaSeconds * 1000);
+  set({ rest: { endsAt, total: Math.max(1, r.total + deltaSeconds) } });
+}
+
+export function stopRest() {
+  set({ rest: null });
 }

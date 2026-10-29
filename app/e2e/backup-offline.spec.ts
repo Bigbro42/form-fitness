@@ -100,7 +100,7 @@ test('works offline after the first visit', async ({ page, context }) => {
 test('no horizontal overflow and no errors on any screen', async ({ page }) => {
   const errors = trackErrors(page);
   await logLegacyWorkout(page);
-  for (const hash of ['#/', '#/verlauf', '#/daten']) {
+  for (const hash of ['#/', '#/training', '#/verlauf', '#/daten']) {
     await openNewApp(page, hash);
     await expectNoHorizontalOverflow(page);
   }

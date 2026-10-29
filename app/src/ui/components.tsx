@@ -47,7 +47,7 @@ export function SessionRow({ session }: { session: WorkoutSession }) {
 }
 
 /** Bottom sheet dialog with focus handling and Escape to close. */
-export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ComponentChildren }) {
+export function Sheet({ title, onClose, children, tall }: { title: string; onClose: () => void; children: ComponentChildren; tall?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -63,8 +63,11 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   }, []);
   return (
     <div class="sheet-backdrop" onClick={(e) => e.target === e.currentTarget && close.current()}>
-      <div class="sheet" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
-        <h2 class="h2">{title}</h2>
+      <div class={`sheet${tall ? ' sheet-tall' : ''}`} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
+        <div class="sheet-head">
+          <h2 class="h2">{title}</h2>
+          <button class="icon-btn icon-btn-sm" onClick={() => close.current()} aria-label="Schließen"><Icon name="close" size={18} /></button>
+        </div>
         {children}
       </div>
     </div>

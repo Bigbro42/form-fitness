@@ -122,6 +122,7 @@ export function Data() {
 
         {legacy && (
           <section class="card" aria-labelledby="legacy">
+            <a class="btn btn-ghost" href="../" style={{ float: 'right', marginTop: 'calc(-1 * var(--space-2))' }}>Öffnen<Icon name="external" size={16} /></a>
             <h2 class="h3" id="legacy">Übernahme aus der bisherigen App</h2>
             <p class="muted small">Zuletzt am {dateTime(legacy.importedAt)}. Die bisherige App und ihre Daten wurden dabei nicht verändert.</p>
             <dl class="kv">

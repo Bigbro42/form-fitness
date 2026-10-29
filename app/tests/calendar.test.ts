@@ -8,7 +8,7 @@ import {
 import { builtinExercise } from '../src/domain/catalog';
 import { addExercise, complete, createSession, newExercise, updateSet } from '../src/domain/session';
 import type { WorkoutSession } from '../src/domain/types';
-import { openFormDb, readUserData } from '../src/db/db';
+import { openFormDb, listPhotos, readUserData } from '../src/db/db';
 
 const input = (over: Partial<PlanInput> = {}): PlanInput => ({
   title: 'Beine', activity: 'strength', startsOn: '2026-11-02', time: '18:00', recurrence: recurrenceFor('weekly', null), exercises: [{ exerciseId: 'squat', sets: 3 }], goal: 'strength', ...over,
@@ -121,6 +121,7 @@ describe('database upgrade', () => {
     expect(data.sessions).toHaveLength(1);
     expect(data.plans).toHaveLength(1);
     expect(data.templates).toEqual([]);
+    expect(await listPhotos(db)).toEqual([]);
     db.close();
   });
 });

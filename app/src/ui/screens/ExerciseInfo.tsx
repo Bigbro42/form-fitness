@@ -13,6 +13,7 @@ import { Icon } from '../icons';
 import { href } from '../router';
 import { Technique } from '../workout-parts';
 import { GoalSelect } from './Workout';
+import { OwnPhoto } from '../OwnPhoto';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -73,6 +74,8 @@ export function ExerciseInfo({ id }: { id: string }) {
             <figcaption>Foto: <a href={x.media.sourceUrl} target="_blank" rel="noopener">{x.media.credit}</a> ({x.media.license})</figcaption>
           </figure>
         )}
+
+        <OwnPhoto exerciseId={x.id} name={x.name} hasLibraryPhoto={Boolean(x.media)} />
 
         <section class="card" aria-labelledby="muscles">
           <h2 class="h3" id="muscles">{x.media ? 'Beanspruchte Muskeln' : 'Muskelübersicht'}</h2>

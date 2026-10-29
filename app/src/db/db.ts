@@ -3,7 +3,7 @@ import { normalizeSettings } from '../domain/settings';
 import { DEFAULT_SETTINGS, type ExerciseDef, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
 
 export const DB_NAME = 'form';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
 export type SnapshotKind = 'legacy-storage' | 'user-data';
 
@@ -31,6 +31,15 @@ export interface MergeOutcome {
   keptLocal: number;
 }
 
+/** A photo the user took or picked for an exercise. One per exercise, only on this device. */
+export interface ExercisePhoto {
+  exerciseId: string;
+  blob: Blob;
+  width: number;
+  height: number;
+  updatedAt: string;
+}
+
 interface KvValues {
   settings: Settings;
   legacyImport: LegacyImportState;
@@ -43,6 +52,7 @@ interface FormDB extends DBSchema {
   exercises: { key: string; value: ExerciseDef };
   snapshots: { key: string; value: Snapshot; indexes: { takenAt: string } };
   kv: { key: keyof KvValues; value: KvValues[keyof KvValues] };
+  photos: { key: string; value: ExercisePhoto };
 }
 
 export type Db = IDBPDatabase<FormDB>;
@@ -60,6 +70,9 @@ export function openFormDb(name = DB_NAME): Promise<Db> {
       }
       if (oldVersion < 2) {
         db.createObjectStore('templates', { keyPath: 'id' });
+      }
+      if (oldVersion < 3) {
+        db.createObjectStore('photos', { keyPath: 'exerciseId' });
       }
     },
     blocking() {
@@ -185,4 +198,34 @@ export async function saveSnapshot(db: Db, snapshot: Snapshot, keepPerKind = 10)
 
 export async function listSnapshots(db: Db): Promise<Snapshot[]> {
   return (await db.getAllFromIndex('snapshots', 'takenAt')).reverse();
+}
+
+export function listPhotos(db: Db): Promise<ExercisePhoto[]> {
+  return db.getAll('photos');
+}
+
+export async function putPhoto(db: Db, photo: ExercisePhoto): Promise<void> {
+  await db.put('photos', photo);
+}
+
+export async function deletePhoto(db: Db, exerciseId: string): Promise<void> {
+  await db.delete('photos', exerciseId);
+}
+
+/**
+ * Photos from a backup: added when missing, replaced only by a newer photo. An import never
+ * deletes a photo, also not in "replace" mode – photos are too personal to lose by accident.
+ */
+export async function mergePhotos(db: Db, photos: ExercisePhoto[]): Promise<number> {
+  const tx = db.transaction('photos', 'readwrite');
+  let changed = 0;
+  for (const p of photos) {
+    const existing = await tx.store.get(p.exerciseId);
+    if (!existing || p.updatedAt > existing.updatedAt) {
+      await tx.store.put(p);
+      changed++;
+    }
+  }
+  await tx.done;
+  return changed;
 }

@@ -18,7 +18,7 @@ modifyRandom=function(fn){
 };
 
 // Only show an exercise photo when the source really depicts this exact movement.
-const exactPhotoIds=new Set(['squat','bridge','deadbug','pushup','sideplank','plank','superman','singlebridge','split']);
+const exactPhotoIds=new Set(['squat','bridge','deadbug','pushup','sideplank','plank','superman','singlebridge','split','diamond','heeltilt']);
 const historyExcludingCurrent=(id,rs)=>loggedHistory(id).filter(h=>h.randomId!==rs.id);
 function fromLast(id,rs){return historyExcludingCurrent(id,rs).at(-1)}
 function valuesFor(id,rs){

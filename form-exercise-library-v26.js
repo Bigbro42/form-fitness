@@ -58,12 +58,12 @@ function selectedGoal(){
  return GOALS[ruleGoal]?ruleGoal:preferences().goal;
 }
 function randomGoal(){const rs=activeRandom();return GOALS[rs?.goalV26]?rs.goalV26:GOALS[state.randomGoalV26]?state.randomGoalV26:preferences().goal}
-function profileFor(id,goal,sessionCount=2){
+function profileFor(id,goal,sessionCount=2,sessionDuration=null,exerciseCount=1){
  const x=catalog[id]||{},kind=meta[id]?.kind||'strength';
  const hold=kind==='hold';const cardio=kind==='cardio';const mobility=kind==='mobility';
  const base=x.target||'8–12';
  let reps=base,sets=sessionCount,rest=GOALS[goal]?.rest||GOALS.health.rest,why='',unit=setMetric(id);
- if(cardio){reps=goal==='cardio'?'8–20 Min.':'3–8 Min.';sets=1;why='Für Ausdauer zählt die Belastungsdauer und Intensität, nicht die Wiederholungszahl.'}
+ if(cardio){const block=sessionDuration?Math.max(2,Math.floor((sessionDuration-2)/Math.max(1,exerciseCount))):null;reps=block?`${block}–${block+1} Min.`:goal==='cardio'?'8–20 Min.':'3–8 Min.';sets=1;why='Für Ausdauer zählt die Belastungsdauer und Intensität, nicht die Wiederholungszahl.'}
  else if(mobility){reps=base;sets=1;why='Kontrollierte, schmerzfreie Bewegung und Atmung sind wichtiger als hohe Wiederholungszahlen.'}
  else if(hold){reps=goal==='muscular'?'30–60 Sek.':goal==='strength'?'10–25 Sek.':goal==='mobility'?'20–40 Sek.':'15–40 Sek.';sets=Math.min(3,sessionCount);why='Halte die Position nur so lange wie deine Körperhaltung stabil bleibt.'}
  else if(goal==='strength'){reps='4–8';sets=Math.max(2,Math.min(4,sessionCount));why='Bei Körpergewichtsübungen die Variante erschweren, statt willkürliche Kilogramm vorzugeben.'}
@@ -158,7 +158,7 @@ buildRandomSession=function(){
  const selected=[];const capped=duration<=10?Math.min(count,4):duration<=15?Math.min(count,5):count;
  while(selected.length<capped){const n=chooseExercise(pool,selected,goal);if(!n)break;selected.push(n)}
  const baseSets=duration<=15?1:duration<=25?2:3;
- const items=selected.map(id=>{const p=profileFor(id,goal,baseSets);return {id,variant:state.randomDifficulty==='easy'?'easy':state.randomDifficulty==='hard'?'hard':'standard',sets:Array(p.sets).fill(null),weights:Array(p.sets).fill(null),done:[]}});
+ const items=selected.map(id=>{const p=profileFor(id,goal,baseSets,duration,selected.length);return {id,variant:state.randomDifficulty==='easy'?'easy':state.randomDifficulty==='hard'?'hard':'standard',sets:Array(p.sets).fill(null),weights:Array(p.sets).fill(null),done:[]}});
  const rs={id:'r-'+Date.now()+'-'+Math.floor(Math.random()*1e6),date:nowIso(),createdAt:new Date().toISOString(),focus,duration,goalV26:goal,completed:false,exercises:items};
  randomSessions.push(rs);state.randomActiveId=rs.id;state.randomStage='plan';saveRandom();render();
 };
@@ -188,7 +188,7 @@ function addSettingsPanel(){
    const target=root.querySelector('.v23-workout-top,.v23-detail-heading');
    const goal=randomGoal();const node=document.createElement('div');node.className='v26-plan-goal';node.innerHTML=`Ziel: <strong>${esc(GOALS[goal].short)}</strong> <span>· ${esc(GOALS[goal].rest)}</span>`;
    target?.before(node);
-   const cards=root.querySelectorAll('.v23-exercise');cards.forEach((card,i)=>{const x=rs.exercises[i],sub=card.querySelector('.v23-sub');if(x&&sub){const t=profileFor(x.id,goal,x.sets.length);sub.textContent=`${x.sets.length} Sätze · ${t.reps}`}});
+   const cards=root.querySelectorAll('.v23-exercise');cards.forEach((card,i)=>{const x=rs.exercises[i],sub=card.querySelector('.v23-sub');if(x&&sub){const t=profileFor(x.id,goal,x.sets.length,rs.duration,rs.exercises.length);sub.textContent=`${x.sets.length} Sätze · ${t.reps}`}});
   }
  }
  if(state.view==='body'){
@@ -202,7 +202,7 @@ function addSettingsPanel(){
  if(state.view==='detail'||state.view==='randomizer'&&state.randomStage==='detail'){
   const random=state.view==='randomizer';const rs=random?activeRandom():null;
   const x=random?rs?.exercises?.[Number(state.randomDetailIndex)||0]:list(state.index)?.[state.detailIndex];
-  if(x){const goal=random?randomGoal():selectedGoal();const p=profileFor(x.id,goal,x.sets?.length||2);
+  if(x){const goal=random?randomGoal():selectedGoal();const p=profileFor(x.id,goal,x.sets?.length||2,random?rs.duration:null,random?rs.exercises.length:1);
    const pres=root.querySelector('.v24-prescription');
    if(pres){const box=pres.querySelector('.v24-prescription-grid');if(box){const vals=box.querySelectorAll('strong');if(vals[0])vals[0].textContent=String(x.sets?.length||p.sets);if(vals[1])vals[1].textContent=p.reps}
     const heading=pres.querySelector('.v24-overline');if(heading)heading.textContent='EMPFEHLUNG · '+GOALS[goal].short;

@@ -17,6 +17,8 @@ modifyRandom=function(fn){
   return oldModifyRandom(fn);
 };
 
+// Only show an exercise photo when the source really depicts this exact movement.
+const exactPhotoIds=new Set(['squat','bridge','deadbug','pushup','sideplank','plank','superman','singlebridge','split']);
 const historyExcludingCurrent=(id,rs)=>loggedHistory(id).filter(h=>h.randomId!==rs.id);
 function fromLast(id,rs){return historyExcludingCurrent(id,rs).at(-1)}
 function valuesFor(id,rs){
@@ -28,7 +30,7 @@ function valuesFor(id,rs){
 function shortDate(s){try{return new Date(s+'T12:00:00').toLocaleDateString('de-AT',{day:'numeric',month:'short'})}catch{return s}}
 function cardImage(id){
   const ex=catalog[id]||{name:id};
-  const src=photoSrc(id);
+  const src=exactPhotoIds.has(id)?photoSrc(id):null;
   const alt=esc(ex.name)+' · Übungsdemonstration';
   return `<span class="v23-thumb ${src?'':'is-missing'}">${src?`<img loading="lazy" src="${src}" alt="${alt}" onerror="this.hidden=true;this.parentElement.classList.add('is-missing')">`:''}<span class="v23-fallback"><strong>FORM.</strong><small>Kein Foto</small></span></span>`;
 }
@@ -78,12 +80,20 @@ function workoutPlan(rs){
   ${finished?`<button class="v23-secondary" data-rreopen>Einheit wieder öffnen</button>`:`<button class="v23-secondary" data-rsetup>Anderes Training erstellen</button>`}</div>
   ${finished?`<div class="v23-summary"><b>Training gespeichert</b><p>${st.entered} Sätze dokumentiert. Die Übungen erscheinen jetzt auch im normalen Verlauf.</p><button data-v23-progress>Fortschritt ansehen →</button></div>`:''}`;
 }
+function v23Media(id){
+ const name=esc(catalog[id]?.name||id);
+ const has=exactPhotoIds.has(id)&&!!photoSrc(id);
+ return `<section class="v23-demonstrations" aria-label="Übungspositionen">${[0,1].map(step=>{
+   const src=has?photoSrc(id,step):null;
+   return `<div class="v23-demo-frame ${src?'':'is-missing'}">${src?`<img class="v23-demo-image" src="${src}" alt="${name} · ${step===0?'Startposition':'Endposition'}" onerror="this.hidden=true;this.parentElement.classList.add('is-missing')">`:''}<span class="v23-demo-fallback"><b>FORM.</b><small>Keine geprüfte Abbildung</small></span><span class="v23-demo-label">${step===0?'01 · Start':'02 · Ende'}</span></div>`;
+ }).join('')}</section><p class="v23-demo-credit">${has?'Bildquelle: Free Exercise DB (Unlicense).':'Nicht jede Übung hat bereits eine exakt passende Bildserie.'} Die schriftliche Anleitung ist für eine sichere Technik wichtig.</p>`;
+}
 function randomDetail(rs){
  const n=Math.max(0,Math.min(rs.exercises.length-1,Number(state.randomDetailIndex)||0));const x=rs.exercises[n];if(!x){state.randomStage='plan';return workoutPlan(rs)}
  const ex=catalog[x.id]||{name:x.id,tip:'',target:'',easy:'',hard:''};const h=valuesFor(x.id,rs);
  return `<div class="v23-detail-top"><button class="v23-back" data-rback-plan aria-label="Zurück zum Plan">‹</button><span>ÜBUNG ${n+1} / ${rs.exercises.length}</span><button class="v23-history" data-rhistory="${x.id}">Verlauf ↗</button></div>
   <div class="v23-detail-heading"><h1>${esc(ex.name)}</h1><p>${esc(muscleSummary(ex))} · ${esc(moveTypeLabel(x.id))}</p></div>
-  ${exerciseMedia(x.id)}
+  ${v23Media(x.id)}
   <div class="v23-last-box"><span>ZULETZT</span><b>${h.last?esc(lastSetSummary(h.last,x.id,3)):'Noch keine erfassten Einheiten'}</b>${h.last?`<small>${shortDate(h.last.date)}</small>`:''}${h.best!==null?`<small>Bestleistung: ${fmt(h.best)} ${h.weighted?'kg':setMetric(x.id)}</small>`:''}</div>
   <div class="v23-detail-set-header"><h2>Deine Sätze</h2><span>${x.sets.length} Sätze</span></div>
   <div class="detail-set-head"><span>Satz</span><span>Gewicht (kg)</span><span>${setMetric(x.id)}</span><span>✓</span></div>

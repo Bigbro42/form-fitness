@@ -1,0 +1,34 @@
+/* FORM. V25 — compact coach-first details, anatomically grounded fallback */
+.v25-prescription-top{margin:12px 0 14px!important;scroll-margin-top:80px}
+.v25-prescription-top .v24-prescription-grid{grid-template-columns:minmax(75px,1fr) minmax(0,2fr)}
+.v25-prescription-top .v24-guidance-note{margin-bottom:2px}
+.v25-instructions{background:#15251b;border:1px solid #314b37;border-radius:15px;margin:16px 0;padding:0;overflow:hidden}
+.v25-instructions>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:66px;padding:14px;color:#ecfff0;font-weight:750}
+.v25-instructions>summary::-webkit-details-marker{display:none}
+.v25-instructions>summary:after{content:'⌄';color:#5aff9b;font-size:24px;flex-shrink:0}
+.v25-instructions[open]>summary:after{content:'⌃'}
+.v25-instructions>summary small{font-size:11px;color:#a0b6a6;line-height:1.35;font-weight:400;max-width:120px;text-align:right}
+.v25-instructions .v24-how{margin:0!important;padding:0 14px 16px!important;border:0!important;background:none!important}
+.v25-instructions .v24-how .v24-overline{display:none}
+.v25-instructions .v24-how h2{margin-top:4px}
+.v25-instructions .v24-how ol{margin-top:9px}
+.v25-anatomy{position:relative;display:flex;align-items:center;flex-direction:column;gap:12px;padding:16px;border:1px solid #32533d;border-radius:17px;background:radial-gradient(circle at 50% 53%,#203c2a,#101a15 72%);margin:12px 0}
+.v25-anatomy-titles{text-align:center;display:flex;align-items:center;flex-direction:column;gap:5px}
+.v25-anatomy-titles .v25-kicker{font-size:10px;letter-spacing:.12em;font-weight:800;color:#53f08d}
+.v25-anatomy-titles strong{font-size:16px;color:#f0fff3}
+.v25-anatomy-titles small{color:#b5c5b8;font-size:11px}
+.v25-atlas-images{display:flex;justify-content:center;gap:14px;width:100%;max-width:290px;align-items:center}
+.v25-atlas-images>svg{max-width:46%;height:240px;flex:1;overflow:visible}
+.v25-atlas-region{fill:#7a9480;stroke:#16221b;stroke-width:.095;transition:fill .15s}
+.v25-atlas-region.v25-active{fill:#4bf48d;stroke:#124723;stroke-width:.12}
+.v25-atlas-images>svg path{pointer-events:none}
+.v25-anatomy>p{color:#abc4af;font-size:11px;line-height:1.5;margin:0;text-align:center;max-width:320px}
+.v25-anatomy>p b{color:#edfdef}
+.v25-anatomy .v25-credit{font-size:10px}
+.v25-anatomy .v25-credit a{color:#8ceaaa}
+.v25-anatomy+.v23-demo-credit[hidden],.v25-anatomy+.image-credit[hidden]{display:none}
+.v23-exercise .v23-sub{line-height:1.35!important;white-space:normal}
+.v25-jump{display:block;width:100%;background:transparent;border:1px solid #376f49;border-radius:11px;padding:10px 14px;color:#5aff9b;font-weight:750;margin:0 0 12px;text-align:center;min-height:42px}
+.v25-jump:focus-visible{outline:3px solid #6fffa6;outline-offset:2px}
+.detail-section-title,.v23-detail-set-header{scroll-margin-top:80px}
+@media(max-width:370px){.v25-atlas-images>svg{height:195px}.v25-prescription-top{margin:10px 0!important}.v25-instructions>summary{padding:12px}}

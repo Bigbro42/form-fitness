@@ -21,6 +21,7 @@ export function Home() {
   const now = today();
   const next = upcoming(data.plans, data.sessions, now, 3);
   const todays = next.filter((e) => e.date === now && e.status === 'planned');
+  const { primaryGoal, secondaryGoals } = data.settings;
 
   return (
     <main class="screen">
@@ -29,7 +30,10 @@ export function Home() {
           <p class="eyebrow">{formatDate(today(), { weekday: 'long', day: 'numeric', month: 'long' })}</p>
           <h1 class="title brand">FORM<i>.</i></h1>
         </div>
-        <a class="icon-btn" href={href({ name: 'data' })} aria-label="Daten & Backup"><Icon name="data" size={20} /></a>
+        <div class="head-actions">
+          <a class="icon-btn" href={href({ name: 'data' })} aria-label="Daten & Backup"><Icon name="data" size={20} /></a>
+          <a class="icon-btn" href={href({ name: 'settings' })} aria-label="Einstellungen"><Icon name="settings" size={20} /></a>
+        </div>
       </header>
 
       <div class="stack">
@@ -85,6 +89,23 @@ export function Home() {
           </section>
         )}
       </div>
+
+      <a class="card card-link" href={href({ name: 'settings' })} style={{ marginTop: 'var(--space-4)' }}>
+        <div class="row-main">
+          {primaryGoal ? (
+            <>
+              <b>Ziel: {GOALS[primaryGoal].label}</b>
+              <small>{secondaryGoals.length ? `Nebenziele: ${secondaryGoals.map((g) => GOALS[g].short).join(', ')}` : 'Keine Nebenziele'}</small>
+            </>
+          ) : (
+            <>
+              <b>Ziel festlegen</b>
+              <small>Dann passen Richtwerte und Generator zu dir. Pro Training bleibt es frei wählbar.</small>
+            </>
+          )}
+        </div>
+        <Icon name="chevron" size={18} class="chevron" />
+      </a>
 
       <section class="section" aria-labelledby="next">
         <div class="section-head">

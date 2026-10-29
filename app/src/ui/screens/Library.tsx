@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'preact/hooks';
 import { EQUIPMENT_LABELS, KIND_LABELS, LEVEL_LABELS, LIBRARY_EXERCISES, MUSCLE_LABELS, muscleText } from '../../domain/catalog';
-import { GOAL_IDS, GOALS } from '../../domain/goals';
+import { GOALS, orderGoals } from '../../domain/goals';
 import { activeFilterCount, EMPTY_FILTER, filterLibrary, type LibraryFilter } from '../../domain/library';
 import { REGIONS } from '../../domain/muscles';
-import type { EquipmentId, ExerciseDef, ExerciseKind, MuscleGroup } from '../../domain/types';
+import type { EquipmentId, ExerciseDef, ExerciseKind, GoalId, MuscleGroup } from '../../domain/types';
 import { useAppState } from '../../state/store';
 import { BodyMap } from '../BodyMap';
 import { Sheet } from '../components';
@@ -47,6 +47,9 @@ export function Library() {
   const all = useMemo(() => [...state.data.customExercises, ...LIBRARY_EXERCISES], [state.data.customExercises]);
   const list = filterLibrary(all, f);
   const extra = activeFilterCount({ ...f, group: null, region: null });
+  const { primaryGoal, secondaryGoals } = state.data.settings;
+  const { mine, others } = orderGoals(primaryGoal, secondaryGoals);
+  const goalOptions: [GoalId, string][] = [...mine, ...others].map((g) => [g, GOALS[g].short]);
 
   return (
     <main class="screen">
@@ -115,7 +118,7 @@ export function Library() {
       {filters && (
         <Sheet title="Filter" onClose={() => setFilters(false)}>
           <ChipGroup label="Equipment" options={(Object.keys(EQUIPMENT_LABELS) as EquipmentId[]).map((e) => [e, EQUIPMENT_LABELS[e]])} value={f.equipment} onChange={(v) => update({ equipment: v })} />
-          <ChipGroup label="Ziel" options={GOAL_IDS.map((g) => [g, GOALS[g].short])} value={f.goal} onChange={(v) => update({ goal: v })} />
+          <ChipGroup label="Ziel" options={goalOptions} value={f.goal} onChange={(v) => update({ goal: v })} />
           <ChipGroup label="Trainingsart" options={(Object.keys(KIND_LABELS) as ExerciseKind[]).map((k) => [k, KIND_LABELS[k]])} value={f.kind} onChange={(v) => update({ kind: v })} />
           <ChipGroup label="Schwierigkeit" options={([1, 2, 3] as const).map((l) => [l, LEVEL_LABELS[l]])} value={f.level} onChange={(v) => update({ level: v })} />
           <button class="btn btn-primary btn-block" style={{ marginTop: 'var(--space-4)' }} onClick={() => setFilters(false)}>{list.length} Übungen anzeigen</button>

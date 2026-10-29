@@ -24,3 +24,29 @@ export const GOAL_IDS = Object.keys(GOALS) as GoalId[];
 export function goalLabel(goal: GoalId | null): string {
   return goal ? GOALS[goal].label : 'Ohne festes Ziel';
 }
+
+export const MAX_SECONDARY_GOALS = 2;
+
+const isGoal = (g: unknown): g is GoalId => typeof g === 'string' && g in GOALS;
+
+/**
+ * Long-term goals: one main goal plus up to two secondary goals. Secondary goals never repeat
+ * the main goal, without a main goal there are no secondary goals.
+ */
+export function normalizeGoals(primary: unknown, secondary: unknown): { primaryGoal: GoalId | null; secondaryGoals: GoalId[] } {
+  const primaryGoal = isGoal(primary) ? primary : null;
+  if (!primaryGoal || !Array.isArray(secondary)) return { primaryGoal, secondaryGoals: [] };
+  const secondaryGoals = [...new Set(secondary.filter(isGoal))].filter((g) => g !== primaryGoal).slice(0, MAX_SECONDARY_GOALS);
+  return { primaryGoal, secondaryGoals };
+}
+
+/** The user's own goals first (main, then secondary), then all others in the usual order. */
+export function orderGoals(primary: GoalId | null, secondary: readonly GoalId[]): { mine: GoalId[]; others: GoalId[] } {
+  const mine = primary ? [primary, ...secondary.filter((g) => g !== primary)] : [];
+  return { mine, others: GOAL_IDS.filter((g) => !mine.includes(g)) };
+}
+
+export function goalRole(goal: GoalId, primary: GoalId | null, secondary: readonly GoalId[]): 'Hauptziel' | 'Nebenziel' | null {
+  if (goal === primary) return 'Hauptziel';
+  return primary && secondary.includes(goal) ? 'Nebenziel' : null;
+}

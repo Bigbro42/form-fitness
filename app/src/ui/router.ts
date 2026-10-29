@@ -16,7 +16,8 @@ export type Route =
   | { name: 'generator' }
   | { name: 'history' }
   | { name: 'session'; id: string }
-  | { name: 'data' };
+  | { name: 'data' }
+  | { name: 'settings' };
 
 export function parseRoute(hash: string): Route {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
@@ -37,6 +38,7 @@ export function parseRoute(hash: string): Route {
   if (a === 'verlauf' && b) return { name: 'session', id: b };
   if (a === 'verlauf') return { name: 'history' };
   if (a === 'daten') return { name: 'data' };
+  if (a === 'einstellungen') return { name: 'settings' };
   return { name: 'home' };
 }
 
@@ -59,6 +61,7 @@ export function href(route: Route): string {
     case 'history': return '#/verlauf';
     case 'session': return `#/verlauf/${encodeURIComponent(route.id)}`;
     case 'data': return '#/daten';
+    case 'settings': return '#/einstellungen';
   }
 }
 

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { EQUIPMENT_LABELS, LEVEL_LABELS, LIBRARY_EXERCISES, METRIC_LABELS } from '../../domain/catalog';
 import { today } from '../../domain/dates';
 import { exerciseCount, FOCUS_LABELS, FOCUS_SHORT, generate, recentlyTrained, rerollOne, type Focus, type GeneratedItem, type GeneratorSetup } from '../../domain/generator';
-import { GOAL_IDS, GOALS } from '../../domain/goals';
+import { GOALS } from '../../domain/goals';
 import { range, recommend } from '../../domain/recommendations';
 import { createSession, newExercise } from '../../domain/session';
 import type { EquipmentId, GoalId } from '../../domain/types';
@@ -12,6 +12,7 @@ import { Notice } from '../components';
 import { Icon } from '../icons';
 import { href, navigate } from '../router';
 import { ExercisePicker } from '../workout-parts';
+import { GoalSelect } from './Workout';
 
 /** Kept while the app is open, so leaving and coming back keeps the suggestion. */
 let memory: { setup: GeneratorSetup | null; items: GeneratedItem[] } = { setup: null, items: [] };
@@ -21,8 +22,8 @@ export function Generator() {
   const lookup = useLookup();
   const settings = state.data.settings;
   const [setup, setSetup] = useState<GeneratorSetup>(memory.setup ?? {
-    focus: 'full', goal: settings.primaryGoal ?? 'health', durationMin: 30, equipment: settings.equipment.length ? settings.equipment : ['body'],
-    maxLevel: 2, count: null, respectRecovery: true,
+    focus: 'full', goal: settings.primaryGoal ?? 'health', durationMin: settings.sessionMinutes ?? 30, equipment: settings.equipment.length ? settings.equipment : ['body'],
+    maxLevel: settings.level ?? 2, count: null, respectRecovery: true,
   });
   const [items, setItems] = useState<GeneratedItem[]>(memory.items);
   const [shortBy, setShortBy] = useState(0);
@@ -81,11 +82,9 @@ export function Generator() {
           </div>
         </fieldset>
 
-        <label class="field">
+        <label class="field" for="gen-goal">
           <span>Ziel</span>
-          <select class="select" value={setup.goal} onChange={(e) => update({ goal: (e.currentTarget as HTMLSelectElement).value as GoalId })}>
-            {GOAL_IDS.map((g) => <option key={g} value={g}>{GOALS[g].label}</option>)}
-          </select>
+          <GoalSelect id="gen-goal" allowNone={false} value={setup.goal} onChange={(g) => g && update({ goal: g })} />
         </label>
 
         <label class="field">

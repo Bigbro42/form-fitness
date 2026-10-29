@@ -126,7 +126,7 @@ a { color: var(--accent); }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
 .stat { padding: var(--space-3); border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); min-width: 0; }
 .stat b { display: block; font: 750 24px/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
-.stat span { display: block; margin-top: 2px; font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
+.stat span { display: block; margin-top: 2px; font-size: 12px; color: var(--text-2); overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; }
 
 /* Lists */
 .list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
@@ -467,3 +467,8 @@ button.row:active, a.row:active { background: var(--surface-2); }
 .gen-main { flex: 1; min-width: 0; }
 .gen-main a { color: var(--text); text-decoration: none; }
 .gen-main small { display: block; color: var(--text-2); font-size: 13px; }
+
+/* Settings */
+.head-actions { display: flex; gap: var(--space-2); }
+.plain-list { margin: var(--space-2) 0 0; padding-left: 1.2em; display: grid; gap: var(--space-1); }
+.chip-btn:disabled { opacity: 0.45; }

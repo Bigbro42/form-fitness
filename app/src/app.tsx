@@ -12,6 +12,7 @@ import { History } from './ui/screens/History';
 import { PlanEditor } from './ui/screens/PlanEditor';
 import { Home } from './ui/screens/Home';
 import { Library } from './ui/screens/Library';
+import { SettingsScreen } from './ui/screens/Settings';
 import { SessionDetail } from './ui/screens/SessionDetail';
 import { Summary } from './ui/screens/Summary';
 import { Workout } from './ui/screens/Workout';
@@ -20,7 +21,7 @@ import { RestBar } from './ui/workout-parts';
 void start();
 
 const TABS: { route: Route; label: string; icon: IconName; matches: Route['name'][] }[] = [
-  { route: { name: 'home' }, label: 'Start', icon: 'home', matches: ['home', 'data'] },
+  { route: { name: 'home' }, label: 'Start', icon: 'home', matches: ['home', 'data', 'settings'] },
   { route: { name: 'workout' }, label: 'Training', icon: 'dumbbell', matches: ['workout', 'exercise', 'summary', 'generator'] },
   { route: { name: 'calendar' }, label: 'Kalender', icon: 'calendar', matches: ['calendar', 'plan'] },
   { route: { name: 'library' }, label: 'Übungen', icon: 'body', matches: ['library', 'exerciseInfo', 'customExercise'] },
@@ -43,6 +44,7 @@ function Screen({ route }: { route: Route }) {
     case 'history': return <History />;
     case 'session': return <SessionDetail id={route.id} />;
     case 'data': return <Data />;
+    case 'settings': return <SettingsScreen />;
   }
 }
 

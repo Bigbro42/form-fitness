@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { METRIC_LABELS } from '../../domain/catalog';
 import { formatDate, parseDate } from '../../domain/dates';
-import { GOAL_IDS, GOALS } from '../../domain/goals';
+import { goalRole, GOALS, orderGoals } from '../../domain/goals';
 import { exerciseHistory } from '../../domain/history';
 import { elapsedMinutes, hasLoggedWork } from '../../domain/session';
 import type { GoalId, WorkoutSession } from '../../domain/types';
@@ -22,11 +22,23 @@ function recentExerciseIds(sessions: readonly WorkoutSession[], limit = 8): stri
   return ids.slice(0, limit);
 }
 
-export function GoalSelect({ value, onChange, id }: { value: GoalId | null; onChange: (g: GoalId | null) => void; id: string }) {
+/** Goal picker; the user's own goals (settings) come first, labelled as main or secondary goal. */
+export function GoalSelect({ value, onChange, id, allowNone = true }: { value: GoalId | null; onChange: (g: GoalId | null) => void; id: string; allowNone?: boolean }) {
+  const { primaryGoal, secondaryGoals } = useAppState().data.settings;
+  const { mine, others } = orderGoals(primaryGoal, secondaryGoals);
+  const option = (g: GoalId) => {
+    const role = goalRole(g, primaryGoal, secondaryGoals);
+    return <option key={g} value={g}>{GOALS[g].label}{role ? ` · ${role}` : ''}</option>;
+  };
   return (
     <select id={id} class="select" value={value ?? ''} onChange={(e) => onChange(((e.currentTarget as HTMLSelectElement).value || null) as GoalId | null)}>
-      <option value="">Ohne festes Ziel</option>
-      {GOAL_IDS.map((g) => <option key={g} value={g}>{GOALS[g].label}</option>)}
+      {allowNone && <option value="">Ohne festes Ziel</option>}
+      {mine.length ? (
+        <>
+          <optgroup label="Deine Ziele">{mine.map(option)}</optgroup>
+          <optgroup label="Weitere Ziele">{others.map(option)}</optgroup>
+        </>
+      ) : others.map(option)}
     </select>
   );
 }

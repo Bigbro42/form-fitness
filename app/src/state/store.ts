@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { getKv, listSnapshots, openFormDb, readUserData, type Db, type LegacyImportState, type Snapshot } from '../db/db';
+import { normalizeSettings } from '../domain/settings';
 import { DEFAULT_SETTINGS, type ExerciseDef, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
 import { runLegacyMigration, type MigrationResult } from '../legacy/migrate';
 
@@ -183,7 +184,7 @@ export function deleteCustomExercise(id: string): Promise<void> {
 }
 
 export function saveSettings(patch: Partial<Settings>): Promise<void> {
-  const settings = { ...state.data.settings, ...patch, updatedAt: new Date().toISOString() };
+  const settings = normalizeSettings({ ...state.data.settings, ...patch, updatedAt: new Date().toISOString() });
   set({ data: { ...state.data, settings } });
   return enqueue(() => getDb().put('kv', settings, 'settings'));
 }

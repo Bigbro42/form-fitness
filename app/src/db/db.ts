@@ -1,4 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { normalizeSettings } from '../domain/settings';
 import { DEFAULT_SETTINGS, type ExerciseDef, type PlannedWorkout, type Settings, type UserData, type WorkoutSession, type WorkoutTemplate } from '../domain/types';
 
 export const DB_NAME = 'form';
@@ -88,7 +89,7 @@ export async function readUserData(db: Db): Promise<UserData> {
   await tx.done;
   sessions.sort((a, b) => b.date.localeCompare(a.date) || (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
   templates.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  return { sessions, plans, templates, customExercises, settings: { ...DEFAULT_SETTINGS, ...settings } };
+  return { sessions, plans, templates, customExercises, settings: normalizeSettings(settings) };
 }
 
 interface Revisioned {

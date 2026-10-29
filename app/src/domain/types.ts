@@ -173,6 +173,10 @@ export interface Settings {
   equipment: EquipmentId[];
   restSeconds: number;
   restAuto: boolean;
+  /** Own training level; null = not set (the generator then assumes "Fortgeschritten"). */
+  level: 1 | 2 | 3 | null;
+  /** Usual time budget per workout in minutes; null = not set. */
+  sessionMinutes: number | null;
   updatedAt: IsoDateTime;
 }
 
@@ -182,6 +186,8 @@ export const DEFAULT_SETTINGS: Settings = {
   equipment: ['body'],
   restSeconds: 90,
   restAuto: true,
+  level: null,
+  sessionMinutes: null,
   updatedAt: '1970-01-01T00:00:00.000Z',
 };
 

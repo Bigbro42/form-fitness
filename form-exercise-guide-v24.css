@@ -1,0 +1,24 @@
+/* FORM V24: clear coaching guidance that stays readable during training */
+.v24-coach{display:grid;gap:12px;margin:14px 0 18px;color:#e6f4e8}
+.v24-prescription,.v24-how{background:linear-gradient(140deg,#172820,#141c19);border:1px solid #355644;border-radius:16px;padding:16px}
+.v24-overline{color:#65e99b;font-size:10px;letter-spacing:.11em;font-weight:800;margin-bottom:10px}
+.v24-prescription-grid{display:grid;grid-template-columns:minmax(0,.6fr) minmax(0,1.4fr);gap:9px}
+.v24-prescription-grid>div{background:#0c1712;border:1px solid #314a39;border-radius:11px;padding:11px 12px;min-width:0}
+.v24-prescription-grid small{display:block;font-size:11px;color:#9dbaa7;margin-bottom:5px}
+.v24-prescription-grid strong{font-size:17px;line-height:1.25;color:#fff;display:block;overflow-wrap:anywhere}
+.v24-weight{display:grid;grid-template-columns:65px 1fr;gap:8px;align-items:baseline;margin-top:13px;font-size:12px}
+.v24-weight>span{color:#a2bbaa}.v24-weight>b{font-size:12px;font-weight:600;color:#e7fff0}
+.v24-guidance-note{color:#91aa99;font-size:11px;margin:10px 0 0;line-height:1.5}
+.v24-how h2{font-size:17px;color:#f0fff3;margin:0 0 12px}
+.v24-how ol{counter-reset:steps;padding:0;margin:0;list-style:none;display:grid;gap:10px}
+.v24-how li{counter-increment:steps;display:grid;grid-template-columns:25px 1fr;gap:10px;align-items:start;font-size:13px;line-height:1.48;color:#d8e8dc}
+.v24-how li::before{content:counter(steps);width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#32d97c;color:#082014;font-size:12px;font-weight:800}
+.v24-tips{background:#101b15;border-radius:11px;padding:10px 12px;margin-top:14px}
+.v24-tips p{font-size:12px;line-height:1.52;margin:5px 0;color:#adc5b5}.v24-tips strong{color:#e0f2e5}
+.v24-variations{margin-top:11px;padding:12px;background:#0e1913;border:1px solid #2b4333;border-radius:10px}
+.v24-variations summary{font-weight:700;color:#d8f5e0;font-size:12px;cursor:pointer}
+.v24-variations p{font-size:12px;color:#b2c9b8;margin:9px 0 0}
+.v24-paste,.v24-prescription [data-copy-last]{width:100%;margin:13px 0 0!important;border:1px solid #3e8d58!important;border-radius:11px!important;background:#203e29!important;color:#e1ffe9!important;min-height:43px;padding:10px!important;font-weight:750;font-size:12px}
+.v24-copy-note{font-size:12px;color:#71dfa0;margin:9px 0}
+.v24-original-guide{margin-top:6px}
+@media(max-width:365px){.v24-prescription,.v24-how{padding:13px}.v24-prescription-grid strong{font-size:15px}.v24-how li{font-size:12px}}

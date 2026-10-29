@@ -64,7 +64,12 @@ export async function logLegacyWorkout(page: Page) {
 
 /** History lives under the "Fortschritt" tab. */
 export async function openHistory(page: Page) {
-  await page.getByRole('link', { name: 'Fortschritt' }).click();
+  await tab(page, 'Fortschritt').click();
   await page.getByRole('link', { name: 'Alle Trainings' }).click();
   await expect(page.getByRole('heading', { name: 'Deine Trainings' })).toBeVisible();
+}
+
+/** A tab of the bottom navigation; page content may contain links with the same name. */
+export function tab(page: Page, name: string) {
+  return page.getByRole('navigation', { name: 'Hauptnavigation' }).getByRole('link', { name, exact: true });
 }

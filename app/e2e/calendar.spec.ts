@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { openHistory, expectNoHorizontalOverflow, openNewApp, trackErrors } from './helpers';
+import { openHistory, expectNoHorizontalOverflow, openNewApp, tab, trackErrors } from './helpers';
 
 // Thursday, 29 October 2026, 10:00 in Vienna.
 test.beforeEach(async ({ page }) => {
@@ -42,7 +42,7 @@ test('weekly series continues across the month boundary; planned never counts as
   await page.getByRole('button', { name: 'Nächster Monat' }).click();
   await expect(day(page, /^Donnerstag, 3\. Dezember, 1 geplant/)).toBeVisible();
 
-  await page.getByRole('link', { name: 'Start' }).click();
+  await tab(page, 'Start').click();
   await expect(page.getByText('Heute geplant')).toBeVisible();
   await expect(page.locator('.stat').first()).toContainText('0');
 });
@@ -50,7 +50,7 @@ test('weekly series continues across the month boundary; planned never counts as
 test('starting a planned workout links it; completing marks the occurrence as done', async ({ page }) => {
   await openNewApp(page);
   await planWeekly(page, 'Beine & Core', { exercises: ['kniebeugen', 'dead bug'] });
-  await page.getByRole('link', { name: 'Start' }).click();
+  await tab(page, 'Start').click();
   await page.getByRole('button', { name: 'Geplantes Training starten' }).click();
   await expect(page.getByRole('heading', { name: 'Beine & Core' })).toBeVisible();
   await expect(page.locator('.exercise-list .row-main b')).toHaveText(['Kniebeugen', 'Dead Bug']);
@@ -60,10 +60,10 @@ test('starting a planned workout links it; completing marks the occurrence as do
   await page.getByRole('link', { name: 'Übersicht' }).click();
   await page.getByRole('button', { name: 'Training abschließen' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Abschließen' }).click();
-  await page.getByRole('link', { name: 'Kalender' }).click();
+  await tab(page, 'Kalender').click();
   await expect(day(page, /^Donnerstag, 29\. Oktober, 1 absolviert$/)).toBeVisible();
   await expect(page.locator('.occ-row')).toContainText('Absolviert');
-  await page.getByRole('link', { name: 'Start' }).click();
+  await tab(page, 'Start').click();
   await expect(page.locator('.stat').first()).toContainText('1');
   // The next occurrence is now the first upcoming one.
   await expect(page.getByLabel('Als Nächstes').or(page.locator('section', { hasText: 'Als Nächstes' })).locator('.row').first()).toContainText('Beine & Core');

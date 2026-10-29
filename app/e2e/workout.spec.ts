@@ -10,7 +10,7 @@ async function addExercise(page: Page, search: string) {
 async function logSet(page: Page, n: number, value: string, kg?: string) {
   if (kg !== undefined) await page.getByLabel(`Gewicht Satz ${n} in kg`).fill(kg);
   await page.getByLabel(new RegExp(`^(Wiederholungen|Sekunden|Minuten) Satz ${n}$`)).fill(value);
-  await page.getByRole('button', { name: `Satz ${n} abhaken` }).click();
+  await page.getByRole('button', { name: `Satz ${n} abhaken`, exact: true }).click();
 }
 
 async function finish(page: Page, rpe?: number) {

@@ -52,6 +52,17 @@ test('progress shows only real data: weeks, trained muscles, records and exercis
 });
 
 test('generator builds an editable workout that is tracked in the shared history', async ({ page }) => {
+  // Fixed random sequence: the generated workout is the same on every run.
+  await page.addInitScript(() => {
+    let a = 42;
+    Math.random = () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  });
   const errors = trackErrors(page);
   await openNewApp(page, '#/training');
   await page.getByRole('link', { name: /Workout-Generator/ }).click();
@@ -63,7 +74,7 @@ test('generator builds an editable workout that is tracked in the shared history
   const n = await items.count();
   expect(n).toBeGreaterThanOrEqual(2);
   const first = await items.first().locator('b').textContent();
-  await page.getByRole('button', { name: `${first} ersetzen` }).click();
+  await page.getByRole('button', { name: `${first} ersetzen`, exact: true }).click();
   await expect(items.first().locator('b')).not.toHaveText(first!);
   await page.getByRole('button', { name: /entfernen$/ }).last().click();
   await expect(items).toHaveCount(n - 1);

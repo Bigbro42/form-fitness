@@ -36,7 +36,7 @@ function cardImage(id){
 }
 const labelFor={chest:'Brust',back:'Rücken',shoulders:'Schultern',arms:'Arme',legs:'Beine',glutes:'Gesäß',abs:'Core'};
 function muscleSummary(ex){return (ex.muscles||[]).slice(0,2).map(m=>muscleNames[m]||labelFor[m]||m).join(' · ')||'Körpergewicht'}
-function moveTypeLabel(id){return {squat:'Kniebeuge',lunge:'Ausfallschritt',bridge:'Hüftstreckung',hinge:'Hüftbeuge',push:'Drücken',back:'Rücken',core:'Stabilität',calf:'Waden'}[movement[id]]||'Beweglichkeit'}
+function moveTypeLabel(id){return {squat:'Kniebeuge',lunge:'Ausfallschritt',bridge:'Hüftstreckung',hinge:'Hüftbeuge',push:'Drücken',back:'Rücken',core:'Stabilität',calf:'Waden'}[movement[id]]||(catalog[id]?.kind==='cardio'?'Ausdauer':catalog[id]?.kind==='mobility'?'Mobilität':catalog[id]?.kind==='hold'?'Stabilität':'Kraft')}
 function alternatives(rs,n){
   const current=rs.exercises[n];if(!current)return [];
   const taken=new Set(rs.exercises.map(e=>e.id));
